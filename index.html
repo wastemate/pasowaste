@@ -23,394 +23,26 @@
             <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
         <![endif]-->
 
-        <div id="wma-app" class="wma-container">
+        <div id="wma-app" class="wma-container" data-bind="visible: shouldShowWMA, template: {name: 'wma-container-main'}"></div>
+        
+        <script type="text/html" id="wma-container-main">
           <div data-bind="visible: shouldShowSearch, template: {name: 'wma-initial-template'}"></div>
           <div class="wma-process__nav" data-bind="visible: shouldShowProcessNav, template: {name: 'wma-process-nav-template'}"></div>
           <div class="wma-row wma-service__type" data-bind="visible: shouldShowCategories, template: { name: 'wma-category-picker-template', foreach: categories}"></div>
-
           <div data-bind="visible: shouldShowResidentialServices, template: {name: 'wma-products-template'}"></div>
           <div data-bind="visible: shouldShowResidentialLandfill, template: {name: 'wma-products-template'}"></div>
           <div data-bind="visible: shouldShowResidentialRecycle, template: {name: 'wma-products-template'}"></div>
           <div data-bind="visible: shouldShowResidentialOrganics, template: {name: 'wma-products-template'}"></div>
           <div data-bind="visible: shouldShowRollOffServices, template: {name: 'wma-products-template'}"></div>
           <div data-bind="visible: shouldShowRollOffMaterials, template: {name: 'wma-products-template'}"></div>
-
-          <!-- resi confirmation BEGIN -->
-          <div class="wma-products__container" data-bind="visible: shouldChooseStart">
-              <div class="wma-products__product-wrap">
-
-                <div class="wma-choose__selector">
-                    <p class="wma-products__title">Drop-off</p>
-                    <p class="wma-products__title-note  wma-base__f-light">Your service day is <span class="wma-base__f-xtrabold" data-bind="text: humanDeliveryDay()"></span></p>
-                    <div id='first-pickup-date-text'></div>
-                    <div id='first-pickup-datepicker'></div>
-                </div>
-
-                <div class="wma-products__container" data-bind="foreach: selectedServices">
-                    <div class="wma-product__container">
-                      <div class='wma-product__top_desc'>
-                        <p class="wma-product__size" data-bind="text: type.name"></p>
-                        <p class="wma-product__size" data-bind="text: name"></p>
-                      </div>
-                      <div class="wma-product__image-wrap custom_image-wrap">
-                        <img src="assets/images/ph_cart.png" data-bind="attr: {src: icon}">
-                      </div>
-                      <div class="wma-product__desc-wrap custom_desc-wrap">
-                        <div class="wma-base__light-border  wma-product__desc custom_product_desc">
-                          <p class="wma-product__price" data-bind="text: (price > 0 ? ('$' + price) : 'Included')"></p>
-                          <p class="wma-product__size" data-bind="text: name"></p>
-                        </div>
-                      </div>
-                    </div>
-                </div>
-              </div>
-          </div>
-          <!-- resi confirmation END -->
-
-          <!-- del/rem confirmation BEGIN -->
-          <div class="wma-products__container" data-bind="visible: shouldShowDeliveryAndReview">
-              <div class="wma-products__product-wrap">
-                <p class="wma-products__title">Choose dates</p>
-                <!-- <p class="wma-products__title-note">Included with landfill price</p> -->
-
-                <div class="wma-choose__selector">
-                  <!-- ui datepicker -->
-                  <label for="wma-start-date">Drop-off</label>
-                  <div id='wma-rolloff-dropoff-date-text'></div>
-                  <div id='wma-rolloff-dropoff-datepicker'></div>
-                  <!-- <input class="wma-choose__selector-date" type="datetime-local" id="wma-start-date" placeholder="Select Date"> -->
-                  <!-- / -->
-                </div>
-
-                <div class="wma-choose__selector">
-                  <!-- ui datepicker -->
-                  <label for="wma-end-date">Pick-up</label>
-                  <div id='wma-rolloff-pickup-date-text'></div>
-                  <div id='wma-rolloff-pickup-datepicker'></div>
-                  <!-- <input class="wma-choose__selector-date" type="datetime-local" id="wma-end-date" placeholder="Select Date"> -->
-                  <!-- / -->
-                </div>
-
-                <div class="wma-products__container rolloff-product" data-bind="with: selectedService">
-
-                    <div class="wma-product__container">
-                      <div class="wma-product__image-wrap">
-                        <img src="assets/images/ph_cart.png" data-bind="attr: {src: icon}">
-                      </div>
-                      <div class="wma-product__desc-wrap">
-                        <div class="wma-base__light-border  wma-product__desc">
-                          <p class="wma-product__price" data-bind="text: (price > 0 ? ('$' + price) : 'Included')"></p>
-                          <p class="wma-product__size" data-bind="text: name"></p>
-                          <p class="wma-product__description" data-bind="text: description"></p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="wma-choose__disclaimer">
-
-                      <div class="wma-form__checkbox">
-                          <input type="checkbox" id='wma-rolloff-terms-a' data-bind="checked: $root.rolloffTermsSubjectToChange"> 
-                          <label class="wma-form__block" for='wma-rolloff-terms-a'>
-                            <span>
-                              <em>I understand availability is subject to change.</em>
-                              <br><br>
-                              We will try our best to accommodate your date request. You will receive an email confirming your drop-off and pick-up dates within XX business days.
-                            </span>
-                          </label>
-                      </div>
-
-                      <div class="clearfix"></div>
-
-                      <div class="wma-form__checkbox">
-                        <input type="checkbox" id='wma-rolloff-terms-b' data-bind="checked: $root.rolloffTermsUnderstandCharge">
-                        <label for='wma-rolloff-terms-b'>
-                          <span>
-                          <em>
-                            I understand that I will be charged $X per ton over XX tons included in base fare.
-                          </em>
-                          </span>
-                        </label>
-                      </div>
-
-                      <br><br>
-
-                      <div class="wma-footer__next">
-                        <button class="wma-footer__next-btn" data-bind="click: $root.next">Next Step</button>
-                      </div>
-
-                    </div>
-
-                </div>
-
-              </div>
-          </div>
-          <!-- del/rem confirmation END -->
-
-          <!-- customer info BEGIN -->
-          <div class="wma-base__container  wma-base__panel-light" data-bind="visible: shouldShowBillingInfo">
-              <div class="wma-base__container-wrap">
-
-                <div class="wma-row">
-                  <div class="wma-info__column">
-
-                    <h3 class="wma-base__title">Customer information</h3>
-
-                    <div class="wma-base__form-group col-md-6" style="width:49%;float:left;margin-top:10px;">
-                      <input placeholder='First name *' type="text" class="wma-base__form-control" id="wma-cst-fn" data-bind="value: serviceFirstName">
-                    </div>
-
-                    <div class="wma-base__form-group col-md-6" style="width:49%;float:right;margin-top:10px;">
-                      <input placeholder='Last name *' type="text" class="wma-base__form-control" id="wma-cst-ln" data-bind="value: serviceLastName">
-                    </div>
-
-                    <div class='clearfix'></div>
-
-                    <div class="wma-base__form-group">
-                      <input placeholder='Email *' type="text" class="wma-base__form-control" id="wma-cst-em" data-bind="value: serviceEmail">
-                    </div>
-
-                    <div class="wma-base__form-group">
-                      <input placeholder='Phone number *' type="text" class="wma-base__form-control" id="wma-cst-phn" data-bind="value: servicePhone" placeholder='(   )    -    '>
-                    </div>
-
-                  </div>
-
-                  <div class="wma-info__column">
-                    <h3 class="wma-base__title">Customer pick-up address</h3>
-
-                    <div class="wma-base__form-group col-md-6" style="width:49%;float:left;margin-top:10px;">
-                      <input placeholder='Address *' type="text" class="wma-base__form-control" id="wma-cst-aptste" data-bind="value: serviceAddress">
-                    </div>
-
-                    <div class="wma-base__form-group col-md-6" style="width:49%;float:right;margin-top:10px;">
-                      <input placeholder='Apt, suite, etc. (optional)' type="text" class="wma-base__form-control" id="wma-cst-aptste" data-bind="value: serviceAddressApt">
-                    </div>
-
-                    <div class="clearfix"></div>
-
-                    <div class="wma-base__form-group">
-                      <input placeholder='City *' type="text" class="wma-base__form-control" id="wma-cst-city" data-bind="value: serviceCity">
-                    </div>
-
-                    <div class="clearfix"></div>
-
-                    <div class="wma-base__form-group col-md-6" style="width:49%;float:left;">
-                      <input placeholder='State *' type="text" class="wma-base__form-control" id="wma-cst-aptste" data-bind="value: serviceStateShort">
-                    </div>
-
-                    <div class="wma-base__form-group col-md-6" style="width:49%;float:right;">
-                      <input placeholder='ZIP *' type="text" class="wma-base__form-control" id="wma-cst-zip" data-bind="value: serviceZip">
-                    </div>
-
-                  </div>
-
-
-                  <div class="wma-info__column">
-                    <div class="wma-info__map-container">
-
-                      <span>Drag to confirm location:</span>
-                      <div id="interactive_map"></div>
-                      <!-- <img data-bind="attr:{ src: serviceMapUrl }"/> -->
-
-                    </div>
-                  </div>
-                </div>
-
-                <div class="wma-row wma-base__last-row wma-base__horz-center">
-                    <button class="wma-base__next-btn wma-info__checkout-btn" data-bind="click: $root.next">Checkout</button>
-                </div>
-              </div>
-            </div>
-          <!-- customer info END -->
-          <!-- confirm and pay info BEGIN -->
-          <form autocomplete='on' class="wma-base__container wma-base__padded wma-base__panel-light" data-bind="visible: shouldShowPaymentInfo">
-              <div class="wma-base__container-wrap">
-                <div class="wma-row">
-                  <div class="wma-info__column" data-bind="visible: !noServiceSelection()">
-                    <h3 class="wma-base__title">
-                      Payment
-                      <img id='wma-cc-discover' class='img-responsive' src="assets/images/cc/discover.png">
-                      <img id='wma-cc-amex' class='img-responsive' src="assets/images/cc/amex.png">
-                      <img id='wma-cc-mastercard' class='img-responsive' src="assets/images/cc/mastercard.png">
-                      <img id='wma-cc-visa' class='img-responsive' src="assets/images/cc/visa.png">
-                    </h3>
-                    <div class="wma-base__form-group">
-                      <input type="text" placeholder='Card number *' class="wma-base__form-control" id="wma-cst-crdnbr" data-bind="value: billingCard">
-                      <span class='glyphicon glyphicon-lock'></span>
-                    </div>
-                    <div class="wma-base__form-group">
-                      <label for="wma-cst-expdate">Expires on *</label>
-                      <select type="text" class="wma-base__form-control" id="wma-cst-expmm" data-bind="value: billingCardExpiresMonth">
-                        <option value="-1">mm</option>
-                        <option value="1">01</option>
-                        <option value="2">02</option>
-                        <option value="3">03</option>
-                        <option value="4">04</option>
-                        <option value="5">05</option>
-                        <option value="6">06</option>
-                        <option value="7">07</option>
-                        <option value="8">08</option>
-                        <option value="9">09</option>
-                        <option value="10">10</option>
-                        <option value="11">11</option>
-                        <option value="12">12</option>
-                      </select>
-                      <select type="text" class="wma-base__form-control" id="wma-cst-expyy" data-bind="value: billingCardExpiresYear">
-                        <option value="-1">yyyy</option>
-                        <option value="2015">2015</option>
-                        <option value="2016">2016</option>
-                        <option value="2017">2017</option>
-                        <option value="2018">2018</option>
-                        <option value="2019">2019</option>
-                        <option value="2020">2020</option>
-                      </select>
-                    </div>
-                    <div class="wma-base__form-group">
-                      <label for="wma-cst-cvv">Security code *</label>
-                      <input type="text" class="wma-base__form-control" id="wma-cst-cvv" data-bind="value: billingCardSecurity">
-                      <span id='wma-cst-cvv-info' data-toggle="tooltip" data-placement="top" title="We'll use this phone number to verify your identity for account management." >?</span>
-
-                    </div>
-                  </div>
-
-                  <div class="wma-info__column">
-                    <h3 class="wma-base__title">Billing information</h3>
-
-                    <div class="clearfix"></div>
-
-                    <div class="wma-base__form-group">
-                      <input type="text" placeholder='First name *' class="wma-base__form-control" id="wma-cst-billfn" data-bind="value: billingFirstName">
-                    </div>
-                    <div class="wma-base__form-group">
-                      <input type="text" placeholder='Last name *' class="wma-base__form-control" id="wma-cst-billln" data-bind="value: billingLastName">
-                    </div>
-
-                    <div>
-                      <input id="wma-cst-billsameaddr" type='checkbox' class='btn btn-xs btn-default'>
-                      <label for="wma-cst-billsameaddr">Billing address same as service address</label>
-                    </div>
-
-                    <div class="clearfix"></div>
-
-                    <div class="wma-base__form-group col-md-6 wma-billing-input" style="width:49%;float:left;margin-top:10px;">
-                      <input placeholder='Address *' type="text" class="wma-base__form-control" data-bind="value: billingAddress">
-                    </div>
-
-                    <div class="wma-base__form-group col-md-6 wma-billing-input" style="width:49%;float:right;margin-top:10px;">
-                      <input placeholder='Apt, suite, etc. (optional)' type="text" class="wma-base__form-control" data-bind="value: billingAddressApt">
-                    </div>
-
-                    <div class="clearfix"></div>
-
-                    <div class="wma-base__form-group">
-                      <input placeholder='City *' type="text" class="wma-base__form-control wma-billing-input" data-bind="value: billingCity">
-                    </div>
-
-                    <div class="clearfix"></div>
-
-                    <div class="wma-base__form-group col-md-6 wma-billing-input" style="width:49%;float:left;margin-top:10px;">
-                      <input placeholder='State *' type="text" class="wma-base__form-control" data-bind="value: billingStateShort">
-                    </div>
-
-                    <div class="wma-base__form-group col-md-6 wma-billing-input" style="width:49%;float:right;margin-top:10px;">
-                      <input placeholder='Zip *' type="text" class="wma-base__form-control" data-bind="value: billingZip">
-                    </div>
-
-                    <div class="clearfix"></div>
-
-                    <div class="wma-base__form-group col-md-6 wma-billing-input" style="margin-top:10px;">
-                      <input placeholder='Phone number (optional)' type="text" class="wma-base__form-control" id='wma-cst-billingphn' data-bind="value: billingPhone">
-                    </div>
-
-                  </div>
-
-                  <div class="wma-info__column">
-                    <div class="wma-billing__summary">
-                      <address>
-                        <p data-bind="text: serviceAddress"></p>
-                        <p data-bind="text: serviceAddressAptPrint"></p>
-                        <p data-bind="text: serviceAddressCityStateZip"></p>
-                        <p id='wma-btn-change-address' data-bind="click: show('siteInfo')">Change address</p>
-                      </address>
-
-                      <!-- service detail -->
-                      <div class="wma-billing__service-detail" data-bind="visible: !noServiceSelection()">
-                        <h4 class="wma-billing__service-category">
-                          <em data-bind="text: serviceType"></em>
-                          <span data-bind="click: show( $root.rolloffServices().length ? 'rolloff' : 'residential' )">Revise Service</span>
-                        </h4>
-                        <table class="wma-billing__service-breakdown" data-bind="foreach: selectedServices">
-                          <tr>
-                            <td data-bind="text: name + summary"></td>
-                            <td data-bind="text: (price > 0 ? ('$' + price) + ' / month' : 'included')"></td>
-                          </tr>
-                        </table>
-                      </div>
-
-                      <!-- / service detail -->
-                      <div class="wma-billing__total" data-bind="visible: !noServiceSelection()">
-
-                        <table>
-                          <tr class='wma-total-due'>
-                            <td>Total due</td>
-                            <td data-bind="text: orderTotal"></td>
-                          </tr>
-                          <tr class='wma-total-recurring-monthly'>
-                            <td>Total recurring monthly</td>
-                            <td data-bind="text: recurringTotal"></td>
-                          </tr>
-                        </table>
-
-                        <div class="wma-form__checkbox">
-                          <input type="checkbox" id="wma-cst-billterms-autopay" data-bind="checked: wantsAutopay">
-                          <label for="wma-cst-billterms-autopay"><em>Yes, </em>please enroll me in auto-pay. I understand that my credit card will be charged monthly for recurring trash service.</label>
-                        </div>
-
-                        <div class="clearfix"></div>
-
-                        <div class="wma-form__checkbox">
-                          <input type="checkbox" id="wma-cst-billterms-paperless" data-bind="checked: wantsPaperless">
-                          <label for="wma-cst-billterms-paperless"><em>Yes, </em> please enroll me in paperless billing.</label>
-                        </div>
-
-                      </div>
-
-                      <button class="wma-base__next-btn wma-billing__place-order" data-bind="click: $root.next">
-                      <span data-bind="text: noServiceSelection() ? 'Get Quote' : 'Place Order'"></span>
-                      </button>
-
-                    </div>
-                  </div>
-                </div>
-                <div class="wma-row">
-
-                </div>
-              </div>
-            </form>
-          <!-- confirm and pay info END -->
-
-          <!-- confirmation BEGIN -->
-            <div class="wma-products__container wma-confirmation__content" data-bind="visible: shouldShowConfirmation">
-              <div class="wma-products__product-wrap wma-base__horz-center">
-                <span class="wma-base__icon-check"></span>
-                <p>Thank you for your order.</p>
-                <p>You will receive an email confirming service within 72 hours.</p>
-                <p class="wma-base__pad">If you have any questions, please <a href="#">contact us.</a></p>
-                <a href="#">Order additional services</a>
-              </div>
-            </div>
-          <!-- confirmation END -->
-
-          <!-- footer BEGIN -->
-          <div class="wma-footer__next" data-bind="visible: shouldShowProcessNavFooter">
-            <button class="wma-footer__next-btn" data-bind="click: $root.next">Next Step</button>
-          </div>
-          <!-- footer END -->
-          <!-- Order confirmation BEGIN -->
-
-          <!-- Order confirmation END -->
-        </div>
-
+          <div class="wma-products__container" data-bind="visible: shouldChooseStart, template: {name: 'wma-products-resi-container'}"></div>
+          <div class="wma-products__container" data-bind="visible: shouldShowDeliveryAndReview, template: {name: 'wma-products-oncall-container'}"></div>
+          <div class="wma-base__container wma-base__panel-light" data-bind="visible: shouldShowBillingInfo, template: {name: 'wma-base-service-info'}"></div>
+          <form autocomplete='on' class="wma-base__container wma-base__padded wma-base__panel-light" data-bind="visible: shouldShowPaymentInfo, template: {name:'wma-base-payment-info'}"></form>
+          <div class="wma-products__container wma-confirmation__content" data-bind="visible: shouldShowConfirmation, template: {name: 'wma-products-confirmation'}"></div>
+          <div class="wma-footer__next" data-bind="visible: shouldShowProcessNavFooter, template: {name: 'wma-footer-next'}"></div>
+        </script>
+        
         <script type="text/html" id="wma-initial-template">
             <div class="wma-row wma-inital__header"    data-bind="template: {name: 'wma-inital_header-template'}"></div>
             <div class="wma-row wma-initial__steps"    data-bind="template: {name: 'wma-initial_steps-template'}"></div>
@@ -683,7 +315,367 @@
               <button class='wma-product__btn-select' data-bind="click: $root.selectProductService">Select</button>
             </div>
         </script>
+        
+        <script type="text/html" id="wma-products-resi-container">
+            <div class="wma-products__product-wrap">
+                <div class="wma-choose__selector">
+                    <p class="wma-products__title">Drop-off</p>
+                    <p class="wma-products__title-note  wma-base__f-light">Your service day is <span class="wma-base__f-xtrabold" data-bind="text: humanDeliveryDay()"></span></p>
+                    <div id='first-pickup-date-text'></div>
+                    <div id='first-pickup-datepicker'></div>
+                </div>
 
+                <div class="wma-products__container" data-bind="foreach: selectedServices">
+                    <div class="wma-product__container">
+                      <div class='wma-product__top_desc'>
+                        <p class="wma-product__size" data-bind="text: type.name"></p>
+                        <p class="wma-product__size" data-bind="text: name"></p>
+                      </div>
+                      <div class="wma-product__image-wrap custom_image-wrap">
+                        <img src="assets/images/ph_cart.png" data-bind="attr: {src: icon}">
+                      </div>
+                      <div class="wma-product__desc-wrap custom_desc-wrap">
+                        <div class="wma-base__light-border  wma-product__desc custom_product_desc">
+                          <p class="wma-product__price" data-bind="text: (price > 0 ? ('$' + price) : 'Included')"></p>
+                          <p class="wma-product__size" data-bind="text: name"></p>
+                        </div>
+                      </div>
+                    </div>
+                </div>
+              </div>
+          </script>
+        
+        <script type="text/html" id="wma-products-oncall-container">
+            <div class="wma-products__product-wrap">
+                <p class="wma-products__title">Choose dates</p>
+                <!-- <p class="wma-products__title-note">Included with landfill price</p> -->
+
+                <div class="wma-choose__selector">
+                  <!-- ui datepicker -->
+                  <label for="wma-start-date">Drop-off</label>
+                  <div id='wma-rolloff-dropoff-date-text'></div>
+                  <div id='wma-rolloff-dropoff-datepicker'></div>
+                  <!-- <input class="wma-choose__selector-date" type="datetime-local" id="wma-start-date" placeholder="Select Date"> -->
+                  <!-- / -->
+                </div>
+
+                <div class="wma-choose__selector">
+                  <!-- ui datepicker -->
+                  <label for="wma-end-date">Pick-up</label>
+                  <div id='wma-rolloff-pickup-date-text'></div>
+                  <div id='wma-rolloff-pickup-datepicker'></div>
+                  <!-- <input class="wma-choose__selector-date" type="datetime-local" id="wma-end-date" placeholder="Select Date"> -->
+                  <!-- / -->
+                </div>
+
+                <div class="wma-products__container rolloff-product" data-bind="with: selectedService">
+
+                    <div class="wma-product__container">
+                      <div class="wma-product__image-wrap">
+                        <img src="assets/images/ph_cart.png" data-bind="attr: {src: icon}">
+                      </div>
+                      <div class="wma-product__desc-wrap">
+                        <div class="wma-base__light-border  wma-product__desc">
+                          <p class="wma-product__price" data-bind="text: (price > 0 ? ('$' + price) : 'Included')"></p>
+                          <p class="wma-product__size" data-bind="text: name"></p>
+                          <p class="wma-product__description" data-bind="text: description"></p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="wma-choose__disclaimer">
+
+                      <div class="wma-form__checkbox">
+                          <input type="checkbox" id='wma-rolloff-terms-a' data-bind="checked: $root.rolloffTermsSubjectToChange"> 
+                          <label class="wma-form__block" for='wma-rolloff-terms-a'>
+                            <span>
+                              <em>I understand availability is subject to change.</em>
+                              <br><br>
+                              We will try our best to accommodate your date request. You will receive an email confirming your drop-off and pick-up dates within XX business days.
+                            </span>
+                          </label>
+                      </div>
+
+                      <div class="clearfix"></div>
+
+                      <div class="wma-form__checkbox">
+                        <input type="checkbox" id='wma-rolloff-terms-b' data-bind="checked: $root.rolloffTermsUnderstandCharge">
+                        <label for='wma-rolloff-terms-b'>
+                          <span>
+                          <em>
+                            I understand that I will be charged $X per ton over XX tons included in base fare.
+                          </em>
+                          </span>
+                        </label>
+                      </div>
+
+                      <br><br>
+
+                      <div class="wma-footer__next">
+                        <button class="wma-footer__next-btn" data-bind="click: $root.next">Next Step</button>
+                      </div>
+
+                    </div>
+
+                </div>
+
+              </div>
+          </script>
+          
+          <script type="text/html" id="wma-base-service-info">
+            <div class="wma-base__container-wrap">
+
+                <div class="wma-row">
+                  <div class="wma-info__column">
+
+                    <h3 class="wma-base__title">Customer information</h3>
+
+                    <div class="wma-base__form-group col-md-6" style="width:49%;float:left;margin-top:10px;">
+                      <input placeholder='First name *' type="text" class="wma-base__form-control" id="wma-cst-fn" data-bind="value: serviceFirstName">
+                    </div>
+
+                    <div class="wma-base__form-group col-md-6" style="width:49%;float:right;margin-top:10px;">
+                      <input placeholder='Last name *' type="text" class="wma-base__form-control" id="wma-cst-ln" data-bind="value: serviceLastName">
+                    </div>
+
+                    <div class='clearfix'></div>
+
+                    <div class="wma-base__form-group">
+                      <input placeholder='Email *' type="text" class="wma-base__form-control" id="wma-cst-em" data-bind="value: serviceEmail">
+                    </div>
+
+                    <div class="wma-base__form-group">
+                      <input placeholder='Phone number *' type="text" class="wma-base__form-control" id="wma-cst-phn" data-bind="value: servicePhone" placeholder='(   )    -    '>
+                    </div>
+
+                  </div>
+
+                  <div class="wma-info__column">
+                    <h3 class="wma-base__title">Customer pick-up address</h3>
+
+                    <div class="wma-base__form-group col-md-6" style="width:49%;float:left;margin-top:10px;">
+                      <input placeholder='Address *' type="text" class="wma-base__form-control" id="wma-cst-aptste" data-bind="value: serviceAddress">
+                    </div>
+
+                    <div class="wma-base__form-group col-md-6" style="width:49%;float:right;margin-top:10px;">
+                      <input placeholder='Apt, suite, etc. (optional)' type="text" class="wma-base__form-control" id="wma-cst-aptste" data-bind="value: serviceAddressApt">
+                    </div>
+
+                    <div class="clearfix"></div>
+
+                    <div class="wma-base__form-group">
+                      <input placeholder='City *' type="text" class="wma-base__form-control" id="wma-cst-city" data-bind="value: serviceCity">
+                    </div>
+
+                    <div class="clearfix"></div>
+
+                    <div class="wma-base__form-group col-md-6" style="width:49%;float:left;">
+                      <input placeholder='State *' type="text" class="wma-base__form-control" id="wma-cst-aptste" data-bind="value: serviceStateShort">
+                    </div>
+
+                    <div class="wma-base__form-group col-md-6" style="width:49%;float:right;">
+                      <input placeholder='ZIP *' type="text" class="wma-base__form-control" id="wma-cst-zip" data-bind="value: serviceZip">
+                    </div>
+
+                  </div>
+
+
+                  <div class="wma-info__column">
+                    <div class="wma-info__map-container">
+
+                      <span>Drag to confirm location:</span>
+                      <div id="interactive_map"></div>
+                      <!-- <img data-bind="attr:{ src: serviceMapUrl }"/> -->
+
+                    </div>
+                  </div>
+                </div>
+
+                <div class="wma-row wma-base__last-row wma-base__horz-center">
+                    <button class="wma-base__next-btn wma-info__checkout-btn" data-bind="click: $root.next">Checkout</button>
+                </div>
+              </div>
+          </script>
+        
+        <script type="text/html" id="wma-base-payment-info">
+            <div class="wma-base__container-wrap">
+                <div class="wma-row">
+                  <div class="wma-info__column" data-bind="visible: !noServiceSelection()">
+                    <h3 class="wma-base__title">
+                      Payment
+                      <img id='wma-cc-discover' class='img-responsive' src="assets/images/cc/discover.png">
+                      <img id='wma-cc-amex' class='img-responsive' src="assets/images/cc/amex.png">
+                      <img id='wma-cc-mastercard' class='img-responsive' src="assets/images/cc/mastercard.png">
+                      <img id='wma-cc-visa' class='img-responsive' src="assets/images/cc/visa.png">
+                    </h3>
+                    <div class="wma-base__form-group">
+                      <input type="text" placeholder='Card number *' class="wma-base__form-control" id="wma-cst-crdnbr" data-bind="value: billingCard">
+                      <span class='glyphicon glyphicon-lock'></span>
+                    </div>
+                    <div class="wma-base__form-group">
+                      <label for="wma-cst-expdate">Expires on *</label>
+                      <select type="text" class="wma-base__form-control" id="wma-cst-expmm" data-bind="value: billingCardExpiresMonth">
+                        <option value="-1">mm</option>
+                        <option value="1">01</option>
+                        <option value="2">02</option>
+                        <option value="3">03</option>
+                        <option value="4">04</option>
+                        <option value="5">05</option>
+                        <option value="6">06</option>
+                        <option value="7">07</option>
+                        <option value="8">08</option>
+                        <option value="9">09</option>
+                        <option value="10">10</option>
+                        <option value="11">11</option>
+                        <option value="12">12</option>
+                      </select>
+                      <select type="text" class="wma-base__form-control" id="wma-cst-expyy" data-bind="value: billingCardExpiresYear">
+                        <option value="-1">yyyy</option>
+                        <option value="2015">2015</option>
+                        <option value="2016">2016</option>
+                        <option value="2017">2017</option>
+                        <option value="2018">2018</option>
+                        <option value="2019">2019</option>
+                        <option value="2020">2020</option>
+                      </select>
+                    </div>
+                    <div class="wma-base__form-group">
+                      <label for="wma-cst-cvv">Security code *</label>
+                      <input type="text" class="wma-base__form-control" id="wma-cst-cvv" data-bind="value: billingCardSecurity">
+                      <span id='wma-cst-cvv-info' data-toggle="tooltip" data-placement="top" title="We'll use this phone number to verify your identity for account management." >?</span>
+
+                    </div>
+                  </div>
+
+                  <div class="wma-info__column">
+                    <h3 class="wma-base__title">Billing information</h3>
+
+                    <div class="clearfix"></div>
+
+                    <div class="wma-base__form-group">
+                      <input type="text" placeholder='First name *' class="wma-base__form-control" id="wma-cst-billfn" data-bind="value: billingFirstName">
+                    </div>
+                    <div class="wma-base__form-group">
+                      <input type="text" placeholder='Last name *' class="wma-base__form-control" id="wma-cst-billln" data-bind="value: billingLastName">
+                    </div>
+
+                    <div>
+                      <input id="wma-cst-billsameaddr" type='checkbox' class='btn btn-xs btn-default'>
+                      <label for="wma-cst-billsameaddr">Billing address same as service address</label>
+                    </div>
+
+                    <div class="clearfix"></div>
+
+                    <div class="wma-base__form-group col-md-6 wma-billing-input" style="width:49%;float:left;margin-top:10px;">
+                      <input placeholder='Address *' type="text" class="wma-base__form-control" data-bind="value: billingAddress">
+                    </div>
+
+                    <div class="wma-base__form-group col-md-6 wma-billing-input" style="width:49%;float:right;margin-top:10px;">
+                      <input placeholder='Apt, suite, etc. (optional)' type="text" class="wma-base__form-control" data-bind="value: billingAddressApt">
+                    </div>
+
+                    <div class="clearfix"></div>
+
+                    <div class="wma-base__form-group">
+                      <input placeholder='City *' type="text" class="wma-base__form-control wma-billing-input" data-bind="value: billingCity">
+                    </div>
+
+                    <div class="clearfix"></div>
+
+                    <div class="wma-base__form-group col-md-6 wma-billing-input" style="width:49%;float:left;margin-top:10px;">
+                      <input placeholder='State *' type="text" class="wma-base__form-control" data-bind="value: billingStateShort">
+                    </div>
+
+                    <div class="wma-base__form-group col-md-6 wma-billing-input" style="width:49%;float:right;margin-top:10px;">
+                      <input placeholder='Zip *' type="text" class="wma-base__form-control" data-bind="value: billingZip">
+                    </div>
+
+                    <div class="clearfix"></div>
+
+                    <div class="wma-base__form-group col-md-6 wma-billing-input" style="margin-top:10px;">
+                      <input placeholder='Phone number (optional)' type="text" class="wma-base__form-control" id='wma-cst-billingphn' data-bind="value: billingPhone">
+                    </div>
+
+                  </div>
+
+                  <div class="wma-info__column">
+                    <div class="wma-billing__summary">
+                      <address>
+                        <p data-bind="text: serviceAddress"></p>
+                        <p data-bind="text: serviceAddressAptPrint"></p>
+                        <p data-bind="text: serviceAddressCityStateZip"></p>
+                        <p id='wma-btn-change-address' data-bind="click: show('siteInfo')">Change address</p>
+                      </address>
+
+                      <!-- service detail -->
+                      <div class="wma-billing__service-detail" data-bind="visible: !noServiceSelection()">
+                        <h4 class="wma-billing__service-category">
+                          <em data-bind="text: serviceType"></em>
+                          <span data-bind="click: show( $root.rolloffServices().length ? 'rolloff' : 'residential' )">Revise Service</span>
+                        </h4>
+                        <table class="wma-billing__service-breakdown" data-bind="foreach: selectedServices">
+                          <tr>
+                            <td data-bind="text: name + summary"></td>
+                            <td data-bind="text: (price > 0 ? ('$' + price) + ' / month' : 'included')"></td>
+                          </tr>
+                        </table>
+                      </div>
+
+                      <!-- / service detail -->
+                      <div class="wma-billing__total" data-bind="visible: !noServiceSelection()">
+
+                        <table>
+                          <tr class='wma-total-due'>
+                            <td>Total due</td>
+                            <td data-bind="text: orderTotal"></td>
+                          </tr>
+                          <tr class='wma-total-recurring-monthly'>
+                            <td>Total recurring monthly</td>
+                            <td data-bind="text: recurringTotal"></td>
+                          </tr>
+                        </table>
+
+                        <div class="wma-form__checkbox">
+                          <input type="checkbox" id="wma-cst-billterms-autopay" data-bind="checked: wantsAutopay">
+                          <label for="wma-cst-billterms-autopay"><em>Yes, </em>please enroll me in auto-pay. I understand that my credit card will be charged monthly for recurring trash service.</label>
+                        </div>
+
+                        <div class="clearfix"></div>
+
+                        <div class="wma-form__checkbox">
+                          <input type="checkbox" id="wma-cst-billterms-paperless" data-bind="checked: wantsPaperless">
+                          <label for="wma-cst-billterms-paperless"><em>Yes, </em> please enroll me in paperless billing.</label>
+                        </div>
+
+                      </div>
+
+                      <button class="wma-base__next-btn wma-billing__place-order" data-bind="click: $root.next">
+                      <span data-bind="text: noServiceSelection() ? 'Get Quote' : 'Place Order'"></span>
+                      </button>
+
+                    </div>
+                  </div>
+                </div>
+                <div class="wma-row">
+
+                </div>
+              </div>
+          </script>
+          
+          <script type="text/html" id="wma-products-confirmation">
+            <div class="wma-products__product-wrap wma-base__horz-center">
+                <span class="wma-base__icon-check"></span>
+                <p>Thank you for your order.</p>
+                <p>You will receive an email confirming service within 72 hours.</p>
+                <p class="wma-base__pad">If you have any questions, please <a href="#">contact us.</a></p>
+                <a href="#">Order additional services</a>
+            </div>
+          </script>
+          
+          <script type="text/html" id="wma-footer-next">
+            <button class="wma-footer__next-btn" data-bind="click: $root.next">Next Step</button>
+          </script>
+        
         <script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.0/lodash.min.js"></script>
         <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
         <script src="//cdnjs.cloudflare.com/ajax/libs/jquery.payment/1.2.4/jquery.payment.min.js"></script>
@@ -697,6 +689,7 @@
         <script src="//maps.googleapis.com/maps/api/js?libraries=places&key=AIzaSyDkNkOrlhv8qDAznL8boO3lMXBQUAopnt0"></script>
         <script src="//cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
         <script src="wastemate.min.js"></script>
+        <script src="/js/index.js"></script>
         <!--<script src="http://localhost:35729/livereload.js"></script>-->
     </body>
 </html>

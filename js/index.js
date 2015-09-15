@@ -3,9 +3,10 @@ $(document).ready(function () {
   var appKey = '6YJjl9Tlu9gml6IR0YfXrOIkY9SxqCfP2bshQELI';
   var jsKey = 'DEIXEICevT5qkR1zQxvj8PVHrvWu4XPKN2QUhhmL';
   wma_viewModel = new viewModel();
-  wma_viewModel.show('loading');
   ko.applyBindings(wma_viewModel);
   wastemate.initialize(appKey, jsKey).then(function (categories) {
+    //make the app visible
+    wma_viewModel.shouldShowWMA(true);
     //make search visible!
     wma_viewModel.show('search');
     //After the search is made visible, hookup live address library to the UI input.

@@ -106,6 +106,7 @@ Date.prototype.toJSONLocal = function () {
 function viewModel() {
   var self = this;
   self.showing = ko.observable('search');
+  self.shouldShowWMA = ko.observable(false);
   /* visibility controls */
   self.shouldShowSearch = ko.observable(false);
   self.shouldShowCategories = ko.observable(false);
@@ -262,27 +263,32 @@ function viewModel() {
     if (!_.isNumber(self.serviceDay())) {
       return;
     }
+    
     var getNextServiceDate = function (weeksOffset) {
       // 0 is next soonest service date, 1 is a week after that...
       // assumed to be a weekday
       var serviceDayOfWeek = self.serviceDay();
       var daysOffset = weeksOffset * 7;
-      var d = moment().day(0).add(daysOffset + 7 + serviceDayOfWeek, 'days').toDate();
+      var d = moment().day(0).add(daysOffset + serviceDayOfWeek, 'days').toDate();
       var weekDate = {
         date: d,
         isoString: d.toJSONLocal()
       };
       return weekDate;
     };
-    var numItemsReturned = 50;
+    var soonest = moment().add(24, 'hours');
+    var numItemsReturned = 6; //Order up to 6 weeks in advance
     var deliveryDays = [];
     var buildArray = function () {
       var weekDate = getNextServiceDate(deliveryDays.length);
       // filter out holidays
-      h = DateHelper.getHoliday(weekDate.date);
+      var h = DateHelper.getHoliday(weekDate.date);
       if (h) {
         weekDate = null;
+      } else if (soonest.isAfter(weekDate.date)){
+        weekDate = null;
       }
+      
       deliveryDays.push(weekDate);
       deliveryDays.length < numItemsReturned ? buildArray() : console.log('built list');
     };
@@ -1051,6 +1057,12 @@ function viewModel() {
       break;
     case 'categries':
       hideAll();
+      //bring wastemate front and center when embedded in a 3rd party site
+      var siteContent = $('#body');
+      if(siteContent){
+        self.shouldShowWMA(true);
+        siteContent.hide();
+      }
       self.shouldShowCategories(true);
       break;
     case 'residential':
@@ -1143,6 +1155,18 @@ ko.bindingHandlers.backgroundImage = {
   update: function (element, valueAccessor) {
     ko.bindingHandlers.style.update(element, function () {
       return { backgroundImage: 'url(\'' + valueAccessor() + '\')' };
+    });
+  }
+};
+ko.bindingHandlers.mapAddress = {
+  update: function (element, valueAccessor) {
+    ko.bindingHandlers.html.update(element, function () {
+      var value =  ko.unwrap(valueAccessor());
+      if(value){
+        return '<i class="fa fa-map-marker"></i> ' + value;  
+      } else {
+        return '&nbsp;';
+      }
     });
   }
 };
