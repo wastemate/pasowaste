@@ -930,32 +930,42 @@ function viewModel() {
         address: self.billingAddress(),
         zipCode: self.billingZip()
       };
+            
       wastemate.tokenizeCard(cardInfo).then(function (cardToken) {
+        cardToken.cardType = $.payment.cardType(cardInfo.cardNumber);
         wastemate._private.order.cardToken = cardToken;
-        //Step 2 - Persist billing info via fire and forget
-        wastemate._private.order.save();
-        //TODO: store the billing information!
-        /*wastemate.saveBillingSelection({
-								name: self.billingFirstName() + '' + self.billingLastName()
-							}).then(function(){
-
-							}, function(err){
-
-							});*/
-        //Step 3 - Process the order!
-        wastemate.processNewOrder().then(function (account) {
-          self.saveOrderInFlight = false;
-          console.log(account);
-          self.paymentProcessed(true);
-          self.accountNumber(account.C_ID);
-          self.show('confirmation');
-        }, function (err) {
+        
+        //Preauthorize the payment
+        var amount = self.selectedServicePrice();
+        if (!self.wantsAutopay()) {
+            amount = amount * 2;
+        }
+        amount = ~~(parseFloat(amount) * 100);
+        wastemate.preAuthorizePayment(amount, cardInfo).then(function(preauth){
+          wastemate._private.order.set('delayedCaptureToken', preauth.creditCardToken); 
+          //Step 2 - Persist billing info via fire and forget
+          wastemate._private.order.save();
+          wastemate.setBillingOptions(self.wantsAutopay(), self.wantsPaperless());
+          wastemate.processNewOrder().then(function (account) {
+            self.saveOrderInFlight = false;
+            console.log(account);
+            self.paymentProcessed(true);
+            self.accountNumber(account.C_ID);
+            self.show('confirmation');
+          }, function (err) {
+            self.saveOrderInFlight = false;
+            console.log(err);
+            if (err) {
+              alert('Oops. There was a problem processing your order.');
+            }
+          });
+        }, function(err){
           self.saveOrderInFlight = false;
           console.log(err);
-          if (err) {
-            alert('Oops. There was a problem processing your order.');
-          }
-        });
+           if (err) {
+              alert('Upfront payment failed.');
+            }
+        });       
       }, function (err) {
         self.saveOrderInFlight = false;
         console.log(err);
@@ -1170,7 +1180,9 @@ ko.bindingHandlers.mapAddress = {
     });
   }
 };
-// --------------------------------------
+
+function bindViewFormatters(){
+  // --------------------------------------
 // --------------------------------------
 // validate cc num
 $('#wma-cst-crdnbr').payment('formatCardNumber');
@@ -1259,3 +1271,4 @@ $('.wma-billing-input').on('keyup', function () {
 $(function () {
   $('[data-toggle="tooltip"]').tooltip();
 });
+}

@@ -16,6 +16,7 @@ $(document).ready(function () {
     $.each(categories, function (index, category) {
       wma_viewModel.categories.push(category);
     });
+    bindViewFormatters();
   }, function (err) {
     //something must not be right!
     console.log(err);

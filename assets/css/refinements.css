@@ -99,9 +99,9 @@
 
 /* billing */
 
-textarea:focus, input:focus{
+/*textarea:focus, input:focus{
     border: 2px solid #702e79 !important;
-}
+}*/
 
 label[for='wma-cst-expdate'], label[for='wma-cst-cvv'] {
   width: 100% !important;

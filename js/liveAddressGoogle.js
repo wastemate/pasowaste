@@ -12,7 +12,7 @@ var setupLiveAddressGoogle = function (viewModel) {
     var place = autocomplete.getPlace();
     parseAddress([place], function () {
       viewModel.show('categries');
-    });  // console.log( 'place', place );
+    });
   });
   
   // second (lightbox) input
@@ -22,8 +22,11 @@ var setupLiveAddressGoogle = function (viewModel) {
 
     google.maps.event.addListener( autocomplete2, 'place_changed', function() {
       var place = autocomplete2.getPlace();
-      parseAddress( [ place ] );
-    } );
+      parseAddress( [ place ], function () {
+        $('#signUp').modal('hide');
+        viewModel.show('categries');
+      });
+    });
   }
   
   var onAddressSubmitted = function (address) {
