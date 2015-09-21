@@ -930,9 +930,10 @@ function viewModel() {
         address: self.billingAddress(),
         zipCode: self.billingZip()
       };
+      //Pull the card type from the Stripe payment lib
+      cardInfo.cardType = $.payment.cardType(cardInfo.cardNumber);
             
       wastemate.tokenizeCard(cardInfo).then(function (cardToken) {
-        cardToken.cardType = $.payment.cardType(cardInfo.cardNumber);
         wastemate._private.order.cardToken = cardToken;
         
         //Preauthorize the payment
@@ -942,7 +943,8 @@ function viewModel() {
         }
         amount = ~~(parseFloat(amount) * 100);
         wastemate.preAuthorizePayment(amount, cardInfo).then(function(preauth){
-          wastemate._private.order.set('delayedCaptureToken', preauth.creditCardToken); 
+          wastemate._private.order.set('amount', amount);
+          wastemate._private.order.set('delayedCaptureToken', preauth.creditCardToken);
           //Step 2 - Persist billing info via fire and forget
           wastemate._private.order.save();
           wastemate.setBillingOptions(self.wantsAutopay(), self.wantsPaperless());
