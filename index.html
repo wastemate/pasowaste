@@ -40,6 +40,7 @@
           <div class="wma-base__container wma-base__panel-light" data-bind="visible: shouldShowBillingInfo, template: {name: 'wma-base-service-info'}"></div>
           <form autocomplete='on' class="wma-base__container wma-base__padded wma-base__panel-light" data-bind="visible: shouldShowPaymentInfo, template: {name:'wma-base-payment-info'}"></form>
           <div class="wma-products__container wma-confirmation__content" data-bind="visible: shouldShowConfirmation, template: {name: 'wma-products-confirmation'}"></div>
+          <div class="wma-products__container" data-bind="visible: shouldShowProcessing, template: {name: 'wma-order-processing'}"></div>
           <div class="wma-footer__next" data-bind="visible: shouldShowProcessNavFooter, template: {name: 'wma-footer-next'}"></div>
         </script>
         
@@ -307,8 +308,8 @@
               <div class="wma-product__desc-wrap custom_desc-wrap">
                 <div class="wma-base__light-border  wma-product__desc custom_product_desc">
                   <span class="wma-product__dollar-sign" data-bind="visible: price > 0">$</span>
-                  <span class="wma-product__price" data-bind="visible: (price > 0), text: (price > 0 ? price : '')"></span>
-                  <p class="wma-product__price-text" data-bind="visible: (price == 0), text: (price > 0 ? '' : 'Price included with landfill')"></p>
+                  <span class="wma-product__price wma-product__oc-price" data-bind="visible: (price > 0), text: (price > 0 ? price : '')"></span>
+                  <p class="wma-product__price-text" data-bind="visible: (price == 0), text: (price > 0 ? '' : 'Call for price')"></p>
                   <p class="wma-product__description" data-bind="text: description"></p>
                 </div>
               </div>
@@ -376,7 +377,7 @@
                       </div>
                       <div class="wma-product__desc-wrap">
                         <div class="wma-base__light-border  wma-product__desc">
-                          <p class="wma-product__price" data-bind="text: (price > 0 ? ('$' + price) : 'Included')"></p>
+                          <p class="wma-product__price wma-product__oc-price" data-bind="text: (price > 0 ? ('$' + price) : 'Call')"></p>
                           <p class="wma-product__size" data-bind="text: name"></p>
                           <p class="wma-product__description" data-bind="text: description"></p>
                         </div>
@@ -391,7 +392,7 @@
                             <span>
                               <em>I understand availability is subject to change.</em>
                               <br><br>
-                              We will try our best to accommodate your date request. You will receive an email confirming your drop-off and pick-up dates within XX business days.
+                              We will try our best to accommodate your date request. You will receive an email confirming your drop-off and pick-up dates within 1 business days.
                             </span>
                           </label>
                       </div>
@@ -403,7 +404,20 @@
                         <label for='wma-rolloff-terms-b'>
                           <span>
                           <em>
-                            I understand that I will be charged $X per ton over XX tons included in base fare.
+                            I understand that I will be charged $<span data-bind="text: materialCost"></span> per ton over <span data-bind="text: includedMaterial"></span> tons included in base price.
+                          </em>
+                          </span>
+                        </label>
+                      </div>
+                      
+                      <div class="clearfix"></div>
+                      
+                      <div class="wma-form__checkbox">
+                        <input type="checkbox" id='wma-rolloff-terms-c' data-bind="checked: $root.rolloffTermsUnderstandRent">
+                        <label for='wma-rolloff-terms-c'>
+                          <span>
+                          <em>
+                            I understand that I will be charged $<span data-bind="text: rent"></span> per day after <span data-bind="text: rentDays"></span> days included in base price.
                           </em>
                           </span>
                         </label>
@@ -669,6 +683,12 @@
                 <p>You will receive an email confirming service within 72 hours.</p>
                 <p class="wma-base__pad">If you have any questions, please <a href="#">contact us.</a></p>
                 <a href="#">Order additional services</a>
+            </div>
+          </script>
+          
+          <script type="text/html" id="wma-order-processing">
+            <div class="wma-products__product-wrap wma-base__horz-center">
+                <p>Processing order...<span class="spinner-loader"></span></p>
             </div>
           </script>
           

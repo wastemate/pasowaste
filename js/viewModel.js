@@ -121,12 +121,14 @@ function viewModel() {
   self.shouldShowDeliveryAndReview = ko.observable(false);
   self.shouldShowBillingInfo = ko.observable(false);
   self.shouldShowPaymentInfo = ko.observable(false);
+  self.shouldShowProcessing = ko.observable(false);
   self.shouldShowConfirmation = ko.observable(false);
   self.shouldShowProcessNav = ko.observable(false);
   self.shouldShowProcessNavFooter = ko.observable(false);
   self.noServiceSelection = ko.observable(false);
   self.rolloffTermsSubjectToChange = ko.observable(false);
   self.rolloffTermsUnderstandCharge = ko.observable(false);
+  self.rolloffTermsUnderstandRent = ko.observable(false);
   /* Recurring steps */
   self.isRecurringOrder = ko.observable(false);
   self.cartsChoosen = ko.observable(false);
@@ -154,12 +156,14 @@ function viewModel() {
     _.each(self.rolloffServices(), function (s) {
       var enabled = false;
       _.each(self.selectedMaterial().services, function (ms) {
-        if (s.name == ms.name) {
+        if (s.materialName == ms.materialName) {
           enabled = true;
         }
       });
       s.enabled = enabled;
-      list.push(s);
+      if(s.enabled){
+        list.push(s);
+      }
     });
     return list;
   });
@@ -175,7 +179,7 @@ function viewModel() {
   self.serviceEmail = ko.observable();
   self.servicePhone = ko.observable();
   self.rolloffDatesChoosen = ko.computed(function () {
-    return self.serviceStartDate() && self.serviceEndDate() && self.rolloffTermsSubjectToChange() && self.rolloffTermsUnderstandCharge();
+    return self.serviceStartDate() && self.serviceEndDate() && self.rolloffTermsSubjectToChange() && self.rolloffTermsUnderstandCharge() && self.rolloffTermsUnderstandRent();
   });
   self.serviceAddress = ko.observable();
   self.serviceCity = ko.observable();
@@ -449,9 +453,9 @@ function viewModel() {
           service.summary = 'Recycling service';
           self.organicsServices.push(service);
         }
-        if (service.type.name == 'RollOff') {
+        if (service.type.name == 'RollOff' || service.isRecurring === false) {
           service.selected = false;
-          service.summary = 'Recycling service';
+          service.summary = 'on-call service';
           self.rolloffServices.push(service);
         }
       });
@@ -475,22 +479,24 @@ function viewModel() {
       self.servicesHaveLoaded(true);
       if (self.rolloffServices().length) {
         var allMaterials = [];
+        
         _.each(self.rolloffServices(), function (s) {
-          allMaterials.push(s.material);
+          allMaterials.push(s.materials);
         });
+        
         allMaterials = _.flattenDeep(allMaterials);
         allMaterials = _.uniq(allMaterials, function (m) {
           return m.name;
         });
+        
         // group services by material
         _.each(allMaterials, function (m) {
           m.services = m.services || [];
           _.each(self.rolloffServices(), function (s) {
-            _.each(s.material, function (sm) {
-              if (sm.name == m.name) {
-                m.services.push(s);
-              }
-            });
+            //When the service has a materialName set that matches the material, add it to the list of services for that material
+            if(s.materialName == m.name){
+              m.services.push(s);
+            }
           });
         });
         self.material(allMaterials);
@@ -720,9 +726,11 @@ function viewModel() {
             daysInvalid: daysInvalid
           };
         };
+        
         var dates = getDates(moment().add(1, 'days'), numDaysInFuture);
         availableDates = dates.daysValid;
         invalidDates = dates.daysInvalid;
+        
         $('#wma-rolloff-dropoff-date-text').html(moment(self.serviceStartDate() || availableDates[0]).format('L'));
         $('#wma-rolloff-pickup-date-text').html(moment(self.serviceStartDate() || availableDates[0]).format('L'));
         self.serviceStartDate(moment(self.serviceStartDate() || availableDates[0]).toDate());
@@ -795,7 +803,7 @@ function viewModel() {
       }
       break;
     case 'deliveryAndReview':
-      if (!self.rolloffTermsUnderstandCharge() || !self.rolloffTermsSubjectToChange()) {
+      if (!self.rolloffTermsUnderstandCharge() || !self.rolloffTermsSubjectToChange() || !self.rolloffTermsUnderstandRent()) {
         alert('You must agree with the terms to continue.');
         return;
       }
@@ -920,6 +928,7 @@ function viewModel() {
         return;
       }
       self.saveOrderInFlight = true;
+      self.show('processing');
       //Step 1 - Tokenize the card info
       var cardInfo = {
         cardNumber: self.billingCard().replace(/\s/g, ''),
@@ -932,7 +941,7 @@ function viewModel() {
       };
       //Pull the card type from the Stripe payment lib
       cardInfo.cardType = $.payment.cardType(cardInfo.cardNumber);
-            
+      
       wastemate.tokenizeCard(cardInfo).then(function (cardToken) {
         wastemate._private.order.cardToken = cardToken;
         
@@ -956,6 +965,7 @@ function viewModel() {
             self.show('confirmation');
           }, function (err) {
             self.saveOrderInFlight = false;
+            self.show('payment');
             console.log(err);
             if (err) {
               alert('Oops. There was a problem processing your order.');
@@ -963,6 +973,7 @@ function viewModel() {
           });
         }, function(err){
           self.saveOrderInFlight = false;
+          self.show('payment');
           console.log(err);
            if (err) {
               alert('Upfront payment failed.');
@@ -970,6 +981,7 @@ function viewModel() {
         });       
       }, function (err) {
         self.saveOrderInFlight = false;
+        self.show('payment');
         console.log(err);
         if (err) {
           alert('Credit Card information did not validate');
@@ -977,6 +989,7 @@ function viewModel() {
       });
       break;
     }
+    window.scrollTo(0,window.scrollY); //scroll back to the top of the page
   };
   self.saveOrderInFlight = false;
   self.saveOrder = function (event, next) {
@@ -1058,6 +1071,7 @@ function viewModel() {
       self.shouldShowProcessNav(false);
       self.shouldShowProcessNavFooter(false);
       self.shouldChooseStart(false);
+      self.shouldShowProcessing(false);
     };
     switch (view) {
     case 'loading':
@@ -1130,6 +1144,10 @@ function viewModel() {
       hideAll();
       self.shouldShowPaymentInfo(true);
       self.shouldShowProcessNav(true);
+      break;
+    case 'processing':
+      hideAll();
+      self.shouldShowProcessing(true);
       break;
     case 'confirmation':
       hideAll();
