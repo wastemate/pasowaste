@@ -517,10 +517,10 @@
                   <div class="wma-info__column" data-bind="visible: !noServiceSelection()">
                     <h3 class="wma-base__title">
                       Payment
-                      <img id='wma-cc-discover' class='img-responsive' src="assets/images/cc/discover.png">
-                      <img id='wma-cc-amex' class='img-responsive' src="assets/images/cc/amex.png">
-                      <img id='wma-cc-mastercard' class='img-responsive' src="assets/images/cc/mastercard.png">
-                      <img id='wma-cc-visa' class='img-responsive' src="assets/images/cc/visa.png">
+                      <img id='wma-cc-discover' class='img-responsive' src="/assets/images/cc/discover.png">
+                      <img id='wma-cc-amex' class='img-responsive' src="/assets/images/cc/amex.png">
+                      <img id='wma-cc-mastercard' class='img-responsive' src="/assets/images/cc/mastercard.png">
+                      <img id='wma-cc-visa' class='img-responsive' src="/assets/images/cc/visa.png">
                     </h3>
                     <div class="wma-base__form-group">
                       <input type="text" placeholder='Card number *' class="wma-base__form-control" id="wma-cst-crdnbr" data-bind="value: billingCard">
@@ -629,8 +629,8 @@
                         </h4>
                         <table class="wma-billing__service-breakdown" data-bind="foreach: selectedServices">
                           <tr>
-                            <td data-bind="text: name + summary"></td>
-                            <td data-bind="text: (price > 0 ? ('$' + price) + ' / month' : 'included')"></td>
+                            <td data-bind="text: name + ' ' + summary"></td>
+                            <td data-bind="text: (price > 0 ? ('$' + price) + ($root.rolloffServices().length? ' / each' : ' / month') : 'included')"></td>
                           </tr>
                         </table>
                       </div>
@@ -643,7 +643,7 @@
                             <td>Total due</td>
                             <td data-bind="text: orderTotal"></td>
                           </tr>
-                          <tr class='wma-total-recurring-monthly'>
+                          <tr class='wma-total-recurring-monthly' data-bind="visible: $root.rolloffServices().length == 0">
                             <td>Total recurring monthly</td>
                             <td data-bind="text: recurringTotal"></td>
                           </tr>
@@ -651,7 +651,10 @@
 
                         <div class="wma-form__checkbox">
                           <input type="checkbox" id="wma-cst-billterms-autopay" data-bind="checked: wantsAutopay">
-                          <label for="wma-cst-billterms-autopay"><em>Yes, </em>please enroll me in auto-pay. I understand that my credit card will be charged monthly for recurring trash service.</label>
+                          <label for="wma-cst-billterms-autopay" >
+                              <span data-bind="visible: $root.rolloffServices().length == 0"><em>Yes, </em>please enroll me in auto-pay. I understand that my credit card will be charged monthly for recurring trash service.</span>
+                              <span data-bind="visible: $root.rolloffServices().length > 0"><em>Yes, </em>please enroll me in auto-pay. I understand that my credit card will be charged automatically for future charges.</span>
+                          </label>
                         </div>
 
                         <div class="clearfix"></div>

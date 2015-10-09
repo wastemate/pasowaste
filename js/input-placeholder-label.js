@@ -1,4 +1,5 @@
 
+
 $( document ).ready( function() {
 
   var className = 'custom-input-label';
@@ -26,23 +27,20 @@ $( document ).ready( function() {
       $( input ).css( 'padding', paddingWithLabel, 'important' );
 
     } else {
-
+      
       $( labelElement ).css( 'display', 'none' );
       $( input ).css( 'padding', paddingDefault, 'important' );
-
+    
     }
-
   };
-
+  
+  //add special method to the window class.
   window.invalidateAllInputs = function() {
-
     $( 'input[placeholder][type=text]' ).each( function() {
-
         showLabel( this, !!$( this ).val().length );
-
     } );
-
   };
+  
 
   $( 'input[placeholder][type=text]' ).each( function() {
 

@@ -148,6 +148,7 @@ function viewModel() {
   self.selectedService = ko.observable();
   self.material = ko.observableArray();
   self.selectedMaterial = ko.observable();
+  self.skipValidateCC = false;
   self.materialServices = ko.computed(function () {
     if (!self.rolloffServices() || !self.selectedMaterial()) {
       return [];
@@ -388,13 +389,22 @@ function viewModel() {
     }
     return price;
   });
+  
+  self.isOneTimePrice = ko.computed(function(){
+    var hasSelectedRollOff = ko.utils.arrayFirst(self.rolloffServices(), function (item) {
+      return item.selected == true;
+    });
+    return hasSelectedRollOff ? true: false;
+  });
+  
   self.orderTotal = ko.computed(function () {
     var price = self.selectedServicePrice();
-    if (!self.wantsAutopay()) {
+    if (!self.wantsAutopay() && !self.isOneTimePrice()) {
       price = price * 2;
     }
     return '$' + price;
   });
+  
   self.recurringTotal = ko.computed(function () {
     return '$' + self.selectedServicePrice();
   });
@@ -632,6 +642,8 @@ function viewModel() {
     }
   };
   self.next = function (data, event) {
+    //Always scroll back to the top of the page
+    window.scrollTo(window.scrollX, 0);
     switch (self.showing()) {
     case 'residential': {
         //store selection in a pending order
@@ -899,13 +911,14 @@ function viewModel() {
       if (self.saveOrderInFlight) {
         return;
       }
-      if (!self.validBillingCard()) {
+      
+      if (!self.validBillingCard() && !self.skipValidateCC) {
         alert('Ooops. Please enter a valid card number.');
         return;
-      } else if (!self.validBillingCardExpiration()) {
+      } else if (!self.validBillingCardExpiration() && !self.skipValidateCC) {
         alert('Ooops. Please enter a valid expiration date.');
         return;
-      } else if (!self.validBillingCardSecurity()) {
+      } else if (!self.validBillingCardSecurity() && !self.skipValidateCC) {
         alert('Ooops. Please enter a valid security code');
         return;
       } else if (!self.billingFirstName() || self.billingFirstName() == '') {
@@ -929,38 +942,12 @@ function viewModel() {
       }
       self.saveOrderInFlight = true;
       self.show('processing');
-      //Step 1 - Tokenize the card info
-      var cardInfo = {
-        cardNumber: self.billingCard().replace(/\s/g, ''),
-        ccExpiresMonth: Number(self.billingCardExpiresMonth()),
-        ccExpiresYear: Number(self.billingCardExpiresYear()),
-        securityCode: self.billingCardSecurity(),
-        fullName: self.billingFirstName() + ' ' + self.billingLastName(),
-        address: self.billingAddress(),
-        zipCode: self.billingZip()
-      };
-      //Pull the card type from the Stripe payment lib
-      cardInfo.cardType = $.payment.cardType(cardInfo.cardNumber);
       
-      wastemate.tokenizeCard(cardInfo).then(function (cardToken) {
-        wastemate._private.order.cardToken = cardToken;
-        
-        //Preauthorize the payment
-        var amount = self.selectedServicePrice();
-        if (!self.wantsAutopay()) {
-            amount = amount * 2;
-        }
-        amount = ~~(parseFloat(amount) * 100);
-        wastemate.preAuthorizePayment(amount, cardInfo).then(function(preauth){
-          wastemate._private.order.set('amount', amount);
-          wastemate._private.order.set('delayedCaptureToken', preauth.creditCardToken);
-          //Step 2 - Persist billing info via fire and forget
-          wastemate._private.order.save();
-          wastemate.setBillingOptions(self.wantsAutopay(), self.wantsPaperless());
-          wastemate.processNewOrder().then(function (account) {
+      var processOrder = function(){
+        wastemate.setBillingOptions(self.wantsAutopay(), self.wantsPaperless());
+        wastemate.processNewOrder().then(function (account) {
             self.saveOrderInFlight = false;
             console.log(account);
-            self.paymentProcessed(true);
             self.accountNumber(account.C_ID);
             self.show('confirmation');
           }, function (err) {
@@ -971,25 +958,57 @@ function viewModel() {
               alert('Oops. There was a problem processing your order.');
             }
           });
-        }, function(err){
+      };
+      
+      if(!self.billingCard()){
+        processOrder();
+      } else {
+        //Step 1 - Tokenize the card info
+        var cardInfo = {
+          cardNumber: self.billingCard().replace(/\s/g, ''),
+          ccExpiresMonth: Number(self.billingCardExpiresMonth()),
+          ccExpiresYear: Number(self.billingCardExpiresYear()),
+          securityCode: self.billingCardSecurity(),
+          fullName: self.billingFirstName() + ' ' + self.billingLastName(),
+          address: self.billingAddress(),
+          zipCode: self.billingZip()
+        };
+        //Pull the card type from the Stripe payment lib
+        cardInfo.cardType = $.payment.cardType(cardInfo.cardNumber);
+        wastemate.tokenizeCard(cardInfo).then(function (cardToken) {
+          wastemate._private.order.cardToken = cardToken;
+          //Preauthorize the payment
+          var amount = self.selectedServicePrice();
+          if (!self.wantsAutopay() && !self.isOneTimePrice()) {
+              amount = amount * 2;
+          }
+          amount = ~~(parseFloat(amount) * 100);
+          wastemate.preAuthorizePayment(amount, cardInfo).then(function(preauth){
+            wastemate._private.order.set('amount', amount);
+            wastemate._private.order.set('delayedCaptureToken', preauth.creditCardToken);
+            //Step 2 - Persist billing info via fire and forget
+            wastemate._private.order.save();
+            self.paymentProcessed(true);
+            processOrder();
+          }, function(err){
+            self.saveOrderInFlight = false;
+            self.show('payment');
+            console.log(err);
+            if (err) {
+                alert('Upfront payment failed.');
+              }
+          });       
+        }, function (err) {
           self.saveOrderInFlight = false;
           self.show('payment');
           console.log(err);
-           if (err) {
-              alert('Upfront payment failed.');
-            }
-        });       
-      }, function (err) {
-        self.saveOrderInFlight = false;
-        self.show('payment');
-        console.log(err);
-        if (err) {
-          alert('Credit Card information did not validate');
-        }
-      });
+          if (err) {
+            alert('Credit Card information did not validate');
+          }
+        });
+      }
       break;
     }
-    window.scrollTo(0,window.scrollY); //scroll back to the top of the page
   };
   self.saveOrderInFlight = false;
   self.saveOrder = function (event, next) {
@@ -1049,7 +1068,13 @@ function viewModel() {
   };
   self.show = function (view) {
     console.log(view);
-    window.invalidateAllInputs();
+    
+    try {
+      window.invalidateAllInputs();
+    } catch(ex){
+      //polyfill didn't load
+    }
+    
     // refresh
     self.materialServices();
     if (self._billingIsSame()) {
@@ -1282,7 +1307,11 @@ $('#wma-cst-phn').inputmask('mask', { 'mask': '(999) 999-9999' });
 $('#wma-cst-billingphn').inputmask('mask', { 'mask': '(999) 999-9999' });
 $('#wma-cst-billsameaddr').on('change', function () {
   wma_viewModel.toggleBillingSame();
-  window.invalidateAllInputs();
+  try {
+    window.invalidateAllInputs();
+  } catch(ex){
+    //polyfill didn't load
+  }
 });
 $('.wma-billing-input').on('keyup', function () {
   wma_viewModel._billingIsSame(false);

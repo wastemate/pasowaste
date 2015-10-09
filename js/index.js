@@ -9,6 +9,11 @@ $(document).ready(function () {
     wma_viewModel.shouldShowWMA(true);
     //make search visible!
     wma_viewModel.show('search');
+    
+    //Allow CSRs to use this for cash and check accounts
+    wma_viewModel.skipValidateCC = true;
+    wastemate._private.ccOnly = false;
+    
     //After the search is made visible, hookup live address library to the UI input.
     // wireUpLiveAddress('#street_address', '4160067421270775959');
     setupLiveAddressGoogle(wma_viewModel);

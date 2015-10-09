@@ -12,6 +12,8 @@ var setupLiveAddressGoogle = function (viewModel) {
     var place = autocomplete.getPlace();
     parseAddress([place], function () {
       viewModel.show('categries');
+      //Always scroll back to the top of the page
+      window.scrollTo(window.scrollX, 0);
     });
   });
   
@@ -25,6 +27,8 @@ var setupLiveAddressGoogle = function (viewModel) {
       parseAddress( [ place ], function () {
         $('#signUp').modal('hide');
         viewModel.show('categries');
+        //Always scroll back to the top of the page
+        window.scrollTo(window.scrollX, 0);
       });
     });
   }
