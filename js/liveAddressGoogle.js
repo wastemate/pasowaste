@@ -49,10 +49,10 @@ var setupLiveAddressGoogle = function (viewModel) {
     try {
       address = {
         primaryNumber: parts[0] ? parts[0].long_name : null,
-        street: parts[0] && parts[1] ? parts[0].long_name + ' ' + parts[1].long_name : null,
+        street: parts[0] && parts[1] ? parts[0].long_name + ' ' + parts[1].short_name : null,
         city: parts[2] ? parts[2].long_name : null,
         stateShort: parts[4] ? parts[4].short_name : null,
-        zip: parts[6] ? parts[6].long_name : null,
+        zip: parts[6] ? parts[6].long_name + (parts[7] ? '-'+parts[7].short_name : '') : null,
         lat: results[0].geometry.location.lat() || null,
         lon: results[0].geometry.location.lng() || null,
         rdi: ''
