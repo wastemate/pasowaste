@@ -389,6 +389,9 @@ function viewModel() {
     }
     return price;
   });
+  self.formattedServiceName = ko.computed(function(){
+    return self.serviceFirstName() + ' ' + self.serviceLastName();
+  });
   
   self.isOneTimePrice = ko.computed(function(){
     var hasSelectedRollOff = ko.utils.arrayFirst(self.rolloffServices(), function (item) {
@@ -402,6 +405,21 @@ function viewModel() {
     if (!self.wantsAutopay() && !self.isOneTimePrice()) {
       price = price * 2;
     }
+    
+    if(self.isOneTimePrice() && self.selectedService()){
+      //add rent costs
+      var rent = self.selectedService().rent;
+      var days = self.selectedService().rentDays;
+      var ms = moment(self.serviceEndDate()).diff(moment(self.serviceStartDate()));
+      var d = moment.duration(ms);
+      var daysRent = ~~(d.asDays() - 2); //excluding delivery & removal    
+      
+      if(daysRent > days){
+        var rentCost = (~~((daysRent - days) * rent * 100))/100 
+        price += rentCost;
+      }
+    }
+    
     return '$' + price;
   });
   
@@ -432,6 +450,7 @@ function viewModel() {
   self.loadCategory = function (data, event) {
     console.log('Clicked');
     console.log(data);
+    self.show('processing');
     wastemate.getServices(data.line).then(function (services) {
       if (services.length == 0) {
         self.noServiceSelection(true);
@@ -556,8 +575,8 @@ function viewModel() {
       self.selectProductService(s);
       console.log(s);
     }
-    // hack to refresh view
-    self.show('materials');
+    //Move to the next step
+    self.next();
   };
   self.isResidential = function (service) {
     var isResidential = false;
@@ -588,8 +607,10 @@ function viewModel() {
     }
     if (data.selected) {
       self.selectProductShow(data);
+      self.next();
       return;
     }
+    
     //map the services
     var serviceObjects = [
       self.landfillServices,
@@ -614,7 +635,9 @@ function viewModel() {
     self.selectedService(data);
     self.selectProductShow(data);
     console.log('choose item: ', data);
+    self.next();
   };
+  
   self.onClickCartChangeSize = function (data, event) {
     console.log('event', event);
     console.log('data', data);
@@ -705,7 +728,7 @@ function viewModel() {
       }
       break;
     case 'rolloff': {
-        console.log(self.selectedService());
+        //console.log(self.selectedService());
         _.each(self.services(), function (s) {
           if (s.selected) {
             self.cartsChoosen(true);
@@ -805,6 +828,7 @@ function viewModel() {
         };
         // initPickup = _.debounce( initPickup, 200 );
         initPickup();
+        self.show('processing');
         self.saveOrder(event, function (err) {
           if (err) {
             console.log('Could not save order.');
@@ -819,7 +843,23 @@ function viewModel() {
         alert('You must agree with the terms to continue.');
         return;
       }
-      wastemate.setOnDemandDates(moment(self.serviceStartDate()).toDate(), moment(self.serviceEndDate()).toDate()).then(function () {
+      
+      var deliveryDate;
+      try {
+       deliveryDate = moment(self.serviceStartDate()).toDate().toISOString();
+      } catch(e){
+        alert('Please select a delivery date.');
+        return;
+      }
+      var removalDate;
+      try{
+       removalDate = moment(self.serviceEndDate()).toDate().toISOString();
+      } catch(e){
+        alert('Please select a removal date.');
+        return;
+      }
+      
+      wastemate.setOnDemandDates(deliveryDate, removalDate).then(function () {
         self.startChoosen(true);
         self.show('siteInfo');
         setupMiniMap(self.userLatLon().lat, self.userLatLon().lon);
@@ -867,7 +907,7 @@ function viewModel() {
       } else if (siteInfo.lastName == '') {
         alert('Oops. Missing your last name.');
         return;
-      } else if (siteInfo.email == '') {
+      } else if (siteInfo.email == '' && !self.skipValidateCC) {
         alert('Oops. Missing your email.');
         return;
       } else if (siteInfo.street == '') {
@@ -888,7 +928,7 @@ function viewModel() {
         var re = /^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i;
         return re.test(email);
       };
-      if (!validateEmail(siteInfo.email)) {
+      if (!validateEmail(siteInfo.email) && !self.skipValidateCC) {
         alert('Oops. That email isn\'t valid');
         return;
       }
@@ -944,7 +984,18 @@ function viewModel() {
       self.show('processing');
       
       var processOrder = function(){
+        //persist the billing info
+        wastemate.saveBillingSelection({
+          name: self.billingFirstName() + " " + self.billingLastName(),
+          street: self.billingAddress(),
+          city: self.billingCity(),
+          state: self.billingStateShort(),
+          zip: self.billingZip(),
+          phone: self.billingPhone()
+        });
+        //persist billing options
         wastemate.setBillingOptions(self.wantsAutopay(), self.wantsPaperless());
+        //persist the order!
         wastemate.processNewOrder().then(function (account) {
             self.saveOrderInFlight = false;
             console.log(account);
@@ -1114,7 +1165,12 @@ function viewModel() {
         self.shouldShowWMA(true);
         siteContent.hide();
       }
-      self.shouldShowCategories(true);
+      //Special case, one category just select it already!
+      if(self.categories().length === 1){
+        self.loadCategory(self.categories()[0]);
+      } else {
+        self.shouldShowCategories(true);
+      }
       break;
     case 'residential':
       hideAll();
@@ -1152,13 +1208,11 @@ function viewModel() {
       hideAll();
       self.shouldShowRollOffMaterials(true);
       self.shouldShowProcessNav(true);
-      self.shouldShowProcessNavFooter(true);
       break;
     case 'rolloff':
       hideAll();
       self.shouldShowRollOffServices(true);
       self.shouldShowProcessNav(true);
-      self.shouldShowProcessNavFooter(true);
       break;
     case 'siteInfo':
       hideAll();

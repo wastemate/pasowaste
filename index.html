@@ -101,7 +101,7 @@
                   <!--  ko if: ( landfillServices().length || recyclingServices().length || organicsServices().length ) -->
                     <li data-bind="css: {'wma-nav__completed': cartsChoosen(), '': !cartsChoosen(), 'wma-nav__active': ( showing() == 'residential' || showing() == 'residentialLandfill' || showing() == 'residentalRecycle' || showing() == 'residentialOrganics' ) }, click: cartsChoosen() ? show('residential'): null">
                       <div class="wma-process__nav-count">1</div>
-                      <p class="wma-process__nav-desc">Choose carts </p>
+                      <p class="wma-process__nav-desc">Choose carts</p>
                     </li>
 
                     <li data-bind="css: {'wma-nav__completed': startChoosen(), '': !startChoosen(), 'wma-nav__active': ( showing() == 'chooseStart' ) }, click: cartsChoosen() ? show('chooseStart'): null">
@@ -125,7 +125,7 @@
                   <!--  ko if: rolloffServices().length > 0 -->
                     <li data-bind="css: {'wma-nav__completed': materialChoosen(), '': !materialChoosen(), 'wma-nav__active': ( showing() == 'materials' ) }, click: materialChoosen() ? show('materials'): null">
                       <div class="wma-process__nav-count">1</div>
-                      <p class="wma-process__nav-desc">Choose materials</p>
+                      <p class="wma-process__nav-desc">Choose material</p>
                     </li>
 
                     <li data-bind="css: {'wma-nav__completed': cartsChoosen(), '': !cartsChoosen(), 'wma-nav__active': ( showing() == 'rolloff' ) }, click: cartsChoosen() ? show('rolloff'): null">
@@ -133,9 +133,9 @@
                       <p class="wma-process__nav-desc">Choose bin</p>
                     </li>
 
-                    <li data-bind="css: {'wma-nav__completed': rolloffDatesChoosen(), '': !rolloffDatesChoosen(), 'wma-nav__active': ( showing() == 'chooseStart' ) }, click: cartsChoosen() ? show('chooseStart'): null">
+                    <li data-bind="css: {'wma-nav__completed': rolloffDatesChoosen(), '': !rolloffDatesChoosen(), 'wma-nav__active': ( showing() == 'deliveryAndReview' ) }, click: cartsChoosen() ? show('deliveryAndReview'): null">
                       <div class="wma-process__nav-count">3</div>
-                      <p class="wma-process__nav-desc">Choose start date</p>
+                      <p class="wma-process__nav-desc">Choose dates</p>
                     </li>
 
                     <li data-bind="css: {'wma-nav__completed': addressConfirmed(), '': !addressConfirmed(), 'wma-nav__active': ( showing() == 'siteInfo' ) }, click: startChoosen() ? show('siteInfo'): null">
@@ -244,13 +244,18 @@
         </script>
 
         <script type="text/html" id="wma-materials-template">
-            <div class="wma-material__container" data-bind="click: $root.selectMaterial, style: {'opacity': (!(typeof selected === 'undefined') && selected) ? '1' : '.7'}">
+            <div class="wma-product__container" style="width: 30%;height: 450px;" data-bind="click: $root.selectMaterial">
+              <div class="wma-product__top_desc">
+                <div class="wma-product__desc">
+                  <p class="wma-product__size" data-bind="text: name"></p>
+                </div>
+              </div>
               <div class="wma-product__image-wrap">
                 <img src="assets/images/ph_cart.png" data-bind="attr: {src: icon}">
               </div>
-              <div class="wma-product__desc-wrap">
-                <div class="wma-base__light-border  wma-product__desc">
-                  <p class="wma-product__size" data-bind="text: name"></p>
+              <div class="wma-product__desc-wrap custom_desc-wrap">
+                <div class="wma-product__desc custom_product_desc">
+                  <!--<p class="wma-product__description" data-bind="text: description"></p>-->
                 </div>
               </div>
             </div>
@@ -298,7 +303,7 @@
         </script>
 
         <script type="text/html" id="wma-product-rolloff-template">
-            <div class="wma-product__container custom_rolloff-product-container" data-bind="style: {'opacity': !(typeof enabled == 'undefined') && !enabled ? '.3' : ( (!(typeof selected === 'undefined') && selected) ? '1' : '.7' )}">
+            <div class="wma-product__container custom_rolloff-product-container" data-bind="click: $root.selectProductService">
               <div class='wma-product__top_desc'>
                 <p class="wma-product__size" data-bind="text: name"></p>
               </div>
@@ -313,14 +318,13 @@
                   <p class="wma-product__description" data-bind="text: description"></p>
                 </div>
               </div>
-              <button class='wma-product__btn-select' data-bind="click: $root.selectProductService">Select</button>
             </div>
         </script>
         
         <script type="text/html" id="wma-products-resi-container">
             <div class="wma-products__product-wrap">
                 <div class="wma-choose__selector">
-                    <p class="wma-products__title">Drop-off</p>
+                    <p class="wma-products__title">Service Start Date</p>
                     <p class="wma-products__title-note  wma-base__f-light">Your service day is <span class="wma-base__f-xtrabold" data-bind="text: humanDeliveryDay()"></span></p>
                     <div id='first-pickup-date-text'></div>
                     <div id='first-pickup-datepicker'></div>
@@ -353,7 +357,7 @@
 
                 <div class="wma-choose__selector">
                   <!-- ui datepicker -->
-                  <label for="wma-start-date">Drop-off</label>
+                  <label for="wma-start-date">Delivery Date</label>
                   <div id='wma-rolloff-dropoff-date-text'></div>
                   <div id='wma-rolloff-dropoff-datepicker'></div>
                   <!-- <input class="wma-choose__selector-date" type="datetime-local" id="wma-start-date" placeholder="Select Date"> -->
@@ -362,7 +366,7 @@
 
                 <div class="wma-choose__selector">
                   <!-- ui datepicker -->
-                  <label for="wma-end-date">Pick-up</label>
+                  <label for="wma-end-date">Removal Date</label>
                   <div id='wma-rolloff-pickup-date-text'></div>
                   <div id='wma-rolloff-pickup-datepicker'></div>
                   <!-- <input class="wma-choose__selector-date" type="datetime-local" id="wma-end-date" placeholder="Select Date"> -->
@@ -377,7 +381,7 @@
                       </div>
                       <div class="wma-product__desc-wrap">
                         <div class="wma-base__light-border  wma-product__desc">
-                          <p class="wma-product__price wma-product__oc-price" data-bind="text: (price > 0 ? ('$' + price) : 'Call')"></p>
+                          <p class="wma-product__price wma-product__oc-price" data-bind="text: $root.orderTotal"></p>
                           <p class="wma-product__size" data-bind="text: name"></p>
                           <p class="wma-product__description" data-bind="text: description"></p>
                         </div>
@@ -497,7 +501,7 @@
                   <div class="wma-info__column">
                     <div class="wma-info__map-container">
 
-                      <span>Drag to confirm location:</span>
+                      <span>Drag map to adjust location:</span>
                       <div id="interactive_map"></div>
                       <!-- <img data-bind="attr:{ src: serviceMapUrl }"/> -->
 
@@ -615,6 +619,7 @@
                   <div class="wma-info__column">
                     <div class="wma-billing__summary">
                       <address>
+                        <p data-bind="text: formattedServiceName"></p>  
                         <p data-bind="text: serviceAddress"></p>
                         <p data-bind="text: serviceAddressAptPrint"></p>
                         <p data-bind="text: serviceAddressCityStateZip"></p>
