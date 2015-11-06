@@ -1060,6 +1060,8 @@ function viewModel() {
       }
       break;
     }
+    //Make sure intercom knows that the view changed
+    window.Intercom('update');
   };
   self.saveOrderInFlight = false;
   self.saveOrder = function (event, next) {

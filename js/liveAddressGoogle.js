@@ -112,6 +112,7 @@ var setupLiveAddressGoogle = function (viewModel) {
           console.log('next');
           return;
         }
+        
         if (_debug) {
           console.log(serviceDays);
         }
