@@ -50,7 +50,7 @@
         </script>
 
         <script type="text/html" id="wma-category-picker-template">
-            <div class="wma-base__center-inline wma-service__type-container" data-bind="click: $root.loadCategory, backgroundImage: backgroundImage">
+            <div class="wma-base__center-inline wma-service__type-container" data-bind="click: $root.loadCategory, backgroundImage: backgroundImage, if: isVisible">
                 <div class="wma-service__type-copy-wrap">
                   <h2 class="wma-service__type-title" data-bind="text: name"></h2>
                   <h4 class="wma-service__type-supporting" data-bind="text: description"></h4>
@@ -330,7 +330,7 @@
                     <div id='first-pickup-datepicker'></div>
                 </div>
 
-                <div class="wma-products__container" data-bind="foreach: selectedServices">
+                <div class="wma-products__container" data-bind="foreach: selectedServices" style="width: 75%;">
                     <div class="wma-product__container">
                       <div class='wma-product__top_desc'>
                         <p class="wma-product__size" data-bind="text: type.name"></p>
@@ -345,6 +345,7 @@
                           <p class="wma-product__size" data-bind="text: name"></p>
                         </div>
                       </div>
+                      <div class='wma-product__btn-diff-size' data-bind="click: $root.onClickCartChangeSize">Choose a different size</div>
                     </div>
                 </div>
               </div>
@@ -367,7 +368,7 @@
                 <div class="wma-choose__selector">
                   <!-- ui datepicker -->
                   <label for="wma-end-date">Removal Date</label>
-                  <div id='wma-rolloff-pickup-date-text'></div>
+                  <input id='wma-rolloff-pickup-date-text' style="width: 213px;font-size: 17px;color: #702e79;"></input>
                   <div id='wma-rolloff-pickup-datepicker'></div>
                   <!-- <input class="wma-choose__selector-date" type="datetime-local" id="wma-end-date" placeholder="Select Date"> -->
                   <!-- / -->
@@ -718,7 +719,9 @@
         <script src="//cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
         <script src="wastemate.min.js"></script>
         <script src="js/index.js"></script>
-        <!-- begin olark code -->
+        <!--<script src="http://localhost:35729/livereload.js"></script>-->
+        
+       <!-- begin olark code -->
         <script data-cfasync="false" type='text/javascript'>/*<![CDATA[*/window.olark||(function(c){var f=window,d=document,l=f.location.protocol=="https:"?"https:":"http:",z=c.name,r="load";var nt=function(){
         f[z]=function(){
         (a.s=a.s||[]).push(arguments)};var a=f[z]._={
