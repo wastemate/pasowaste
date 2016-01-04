@@ -105,6 +105,8 @@ Date.prototype.toJSONLocal = function () {
 };
 function viewModel() {
   var self = this;
+  self.history = [];
+  self.lastHash = '';
   self.showing = ko.observable('search');
   self.shouldShowWMA = ko.observable(false);
   /* visibility controls */
@@ -180,7 +182,7 @@ function viewModel() {
   self.serviceEmail = ko.observable();
   self.servicePhone = ko.observable();
   self.rolloffDatesChoosen = ko.computed(function () {
-    return self.serviceStartDate() && self.serviceEndDate() && self.rolloffTermsSubjectToChange() && self.rolloffTermsUnderstandCharge() && self.rolloffTermsUnderstandRent();
+    return self.serviceStartDate() && self.rolloffTermsSubjectToChange() && self.rolloffTermsUnderstandCharge() && self.rolloffTermsUnderstandRent();
   });
   self.serviceAddress = ko.observable();
   self.serviceCity = ko.observable();
@@ -407,16 +409,18 @@ function viewModel() {
     }
     
     if(self.isOneTimePrice() && self.selectedService()){
-      //add rent costs
-      var rent = self.selectedService().rent;
-      var days = self.selectedService().rentDays;
-      var ms = moment(self.serviceEndDate()).diff(moment(self.serviceStartDate()));
-      var d = moment.duration(ms);
-      var daysRent = ~~(d.asDays() - 2); //excluding delivery & removal    
-      
-      if(daysRent > days){
-        var rentCost = (~~((daysRent - days) * rent * 100))/100 
-        price += rentCost;
+      if(self.serviceEndDate()){
+        //add rent costs
+        var rent = self.selectedService().rent;
+        var days = self.selectedService().rentDays;
+        var ms = moment(self.serviceEndDate()).diff(moment(self.serviceStartDate()));
+        var d = moment.duration(ms);
+        var daysRent = ~~(d.asDays() - 2); //excluding delivery & removal    
+        
+        if(daysRent > days){
+          var rentCost = (~~((daysRent - days) * rent * 100))/100 
+          price += rentCost;
+        }
       }
     }
     
@@ -664,9 +668,47 @@ function viewModel() {
       }
     }
   };
+  self.previous = function(data, event){
+   if(window.location.hash == self.lastHash){
+     self.lastHash = '';
+     return;
+   }
+   //remove current from top
+   self.history.pop();
+   var last = self.history.pop();
+   if(last){
+     console.log("previous: " + last);
+     //Always scroll back to the top of the page
+     window.scrollTo(window.scrollX, 0);
+     self.show(last);
+     return true;
+   } else {
+     return false;
+   }
+  },
+  self.manageHistory = function(page){
+    
+    self.lastHash = window.location.hash; 
+    
+    console.log("manageHistory: " + self.lastHash);
+    
+    if(page == 'search'){
+      self.history = [];
+    }
+    
+    if(page == 'processing'){
+      return; //don't want this one in the history
+    }
+    
+    //If not already at the end of the array, add it
+    if(page != self.history[self.history.length-1]){
+      self.history.push(page);    
+    }
+  },
   self.next = function (data, event) {
     //Always scroll back to the top of the page
     window.scrollTo(window.scrollX, 0);
+    
     switch (self.showing()) {
     case 'residential': {
         //store selection in a pending order
@@ -767,9 +809,13 @@ function viewModel() {
         invalidDates = dates.daysInvalid;
         
         $('#wma-rolloff-dropoff-date-text').html(moment(self.serviceStartDate() || availableDates[0]).format('L'));
-        $('#wma-rolloff-pickup-date-text').html(moment(self.serviceStartDate() || availableDates[0]).format('L'));
+        
+        //$('#wma-rolloff-pickup-date-text').html(moment(self.serviceStartDate() || availableDates[0]).format('L'));
+        
         self.serviceStartDate(moment(self.serviceStartDate() || availableDates[0]).toDate());
-        self.serviceEndDate(moment(self.serviceEndDate() || availableDates[0]).toDate());
+        //End date starts as null, only set to a date object after user chooses a removal date.
+        self.serviceEndDate(null);
+       
         var defaultStart = moment(self.serviceStartDate() || availableDates[0]);
         var dp = $('#wma-rolloff-dropoff-datepicker').datetimepicker({
           icons: {
@@ -789,8 +835,7 @@ function viewModel() {
           var d = e.date;
           self.serviceStartDate(d.toDate());
           $('#wma-rolloff-dropoff-date-text').html(d.format('L'));
-          initPickup();
-          console.log('changed', d);
+          updateAvailableRemovalDays(d);
         });
         // ------------------
         var dp2;
@@ -804,7 +849,6 @@ function viewModel() {
           var invalidDates = dates.daysInvalid;
           var minDate = availableDates[0];
           var maxDate = availableDates[availableDates.length - 1];
-          var defaultDate = minDate;
           dp2 = $('#wma-rolloff-pickup-datepicker').datetimepicker({
             icons: {
               date: 'fa fa-calendar',
@@ -816,16 +860,66 @@ function viewModel() {
             maxDate: maxDate,
             inline: true,
             disabledDates: invalidDates,
-            sideBySide: false,
-            defaultDate: defaultDate
+            sideBySide: false
           });
+          $('#wma-rolloff-pickup-datepicker').data('DateTimePicker').clear();
           dp2.on('dp.change', function (e) {
             var d = e.date;
-            self.serviceEndDate(d.toDate());
-            $('#wma-rolloff-pickup-date-text').html(d.format('L'));
-            console.log('changed', d);
+            if(d){
+              self.serviceEndDate(d.toDate());
+              $('#wma-rolloff-pickup-date-text').val(d.format('L'));
+              console.log('changed', d);
+            }
           });
         };
+        
+        var updateAvailableRemovalDays = function(d){
+          if(dp2) {
+            var maxDaysRent = 7 * 4;
+            var dates = getDates(moment(self.serviceStartDate()).add(1, 'days'), maxDaysRent);
+            var availableDates = dates.daysValid;
+            var invalidDates = dates.daysInvalid;
+            var minDate = availableDates[0];
+            var maxDate = availableDates[availableDates.length - 1];
+            $('#wma-rolloff-pickup-datepicker').data('DateTimePicker').minDate(minDate);
+            $('#wma-rolloff-pickup-datepicker').data('DateTimePicker').maxDate(maxDate);
+            var endDate = self.serviceEndDate()
+            if(endDate && moment(endDate).isBefore(d)){
+              //It was, so clear out the selected removal date.
+              self.serviceEndDate(null);
+              $('#wma-rolloff-pickup-date-text').val('');
+              $('#wma-rolloff-pickup-datepicker').data('DateTimePicker').clear();
+            }
+          }
+        }
+        
+        $('#wma-rolloff-pickup-date-text').on('change', function(e){
+          console.log(e);
+          var newValue = e.target.value;
+          if(newValue.length === 0){
+            console.log('user cleared removal date');
+            self.serviceEndDate(null);
+            $('#wma-rolloff-pickup-datepicker').data('DateTimePicker').clear();
+            return; //accept empty pickup date (customer not ready to determine date they will be finished with container)
+          }
+          if(newValue){
+            var newDate = moment(newValue);
+            if(!newDate.isValid()){
+              //user entered something that is not a valid date :(
+              self.serviceEndDate(null);
+              $('#wma-rolloff-pickup-date-text').val('');
+              alert("Removal date isn't valid. Use date picker or enter date as MM/dd/YYYY");
+            } else {
+              //Date is valid, just need to ensure it is more than 1 day after the delivery date.
+              var deliveryDate = moment(self.serviceStartDate());
+              if(!deliveryDate.isBefore(newDate)){
+                 self.serviceEndDate(null);
+                $('#wma-rolloff-pickup-date-text').val('');
+                alert("Removal date isn't valid. It must be at lease 1 day after the delivery date.")
+              }
+            }
+          }
+        });
         // initPickup = _.debounce( initPickup, 200 );
         initPickup();
         self.show('processing');
@@ -851,12 +945,12 @@ function viewModel() {
         alert('Please select a delivery date.');
         return;
       }
-      var removalDate;
+      var removalDate = null;
       try{
        removalDate = moment(self.serviceEndDate()).toDate().toISOString();
       } catch(e){
-        alert('Please select a removal date.');
-        return;
+        //alowying empty removal dates for now.
+        //alert('Please select a removal date.');
       }
       
       wastemate.setOnDemandDates(deliveryDate, removalDate).then(function () {
@@ -868,7 +962,7 @@ function viewModel() {
         console.log(err);
       });
       break;
-    case 'categries':
+    case 'categories':
       //No next button here!! User must choose a category (Lob) to continue
       break;
     case 'chooseStart':
@@ -1060,8 +1154,6 @@ function viewModel() {
       }
       break;
     }
-    //Make sure intercom knows that the view changed
-    window.Intercom('update');
   };
   self.saveOrderInFlight = false;
   self.saveOrder = function (event, next) {
@@ -1107,7 +1199,7 @@ function viewModel() {
       delete s.enabled;
       delete s.selected;
     });
-    console.log(serviceChoices, materialSelection);
+    //console.log(serviceChoices, materialSelection);
     wastemate.saveServiceSelection(serviceChoices, materialSelection).then(function () {
       console.log('saved service selection');
       self.saveOrderInFlight = false;
@@ -1127,6 +1219,8 @@ function viewModel() {
     } catch(ex){
       //polyfill didn't load
     }
+    
+    self.manageHistory(view);
     
     // refresh
     self.materialServices();
@@ -1151,6 +1245,7 @@ function viewModel() {
       self.shouldChooseStart(false);
       self.shouldShowProcessing(false);
     };
+    
     switch (view) {
     case 'loading':
       hideAll();
@@ -1159,7 +1254,7 @@ function viewModel() {
       hideAll();
       self.shouldShowSearch(true);
       break;
-    case 'categries':
+    case 'categories':
       hideAll();
       //bring wastemate front and center when embedded in a 3rd party site
       var siteContent = $('#body');

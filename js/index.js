@@ -1,6 +1,8 @@
 var wma_viewModel;
 $(document).ready(function () {
-  var appKey = '6YJjl9Tlu9gml6IR0YfXrOIkY9SxqCfP2bshQELI';
+  //var appKey = 'RRfEslWKdFjN1u5Ui1FDo8SKuixewcvE8qSsR5It';
+  //var jsKey = 'EmixBK6qQ3MmUK8jPsSVzQKq5K9gLpqPMK8dk909';
+   var appKey = '6YJjl9Tlu9gml6IR0YfXrOIkY9SxqCfP2bshQELI';
   var jsKey = 'DEIXEICevT5qkR1zQxvj8PVHrvWu4XPKN2QUhhmL';
   wma_viewModel = new viewModel();
   ko.applyBindings(wma_viewModel);
@@ -19,6 +21,12 @@ $(document).ready(function () {
     setupLiveAddressGoogle(wma_viewModel);
     //Add each of the categories to the UI
     $.each(categories, function (index, category) {
+      //prepare to hide recurring categories if the address is not in a recurring territory
+      if(category.isRecurring){
+        category.isVisible = false; 
+      } else {
+        category.isVisible = true;  
+      }
       wma_viewModel.categories.push(category);
     });
     bindViewFormatters();
@@ -29,4 +37,9 @@ $(document).ready(function () {
     $('#loading').fadeOut();
     $('#initialize').fadeIn();
   });
+  
+  //register back detection
+  window.onhashchange = function(){
+   wma_viewModel.previous(); 
+  }
 });

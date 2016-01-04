@@ -50,7 +50,7 @@
         </script>
 
         <script type="text/html" id="wma-category-picker-template">
-            <div class="wma-base__center-inline wma-service__type-container" data-bind="click: $root.loadCategory, backgroundImage: backgroundImage, if: isVisible">
+            <div class="wma-base__center-inline wma-service__type-container" data-bind="click: $root.loadCategory, backgroundImage: backgroundImage">
                 <div class="wma-service__type-copy-wrap">
                   <h2 class="wma-service__type-title" data-bind="text: name"></h2>
                   <h4 class="wma-service__type-supporting" data-bind="text: description"></h4>
@@ -368,7 +368,7 @@
                 <div class="wma-choose__selector">
                   <!-- ui datepicker -->
                   <label for="wma-end-date">Removal Date</label>
-                  <input id='wma-rolloff-pickup-date-text' style="width: 213px;font-size: 17px;color: #702e79;"></input>
+                  <input id='wma-rolloff-pickup-date-text' style="width: 100%;font-size: 17px;color: #702e79;"></input>
                   <div id='wma-rolloff-pickup-datepicker'></div>
                   <!-- <input class="wma-choose__selector-date" type="datetime-local" id="wma-end-date" placeholder="Select Date"> -->
                   <!-- / -->
@@ -376,7 +376,7 @@
 
                 <div class="wma-products__container rolloff-product" data-bind="with: selectedService">
 
-                    <div class="wma-product__container">
+                    <div class="wma-product__container wma-product__container-narrow" style="width: 21% !important;">
                       <div class="wma-product__image-wrap">
                         <img src="assets/images/ph_cart.png" data-bind="attr: {src: icon}">
                       </div>

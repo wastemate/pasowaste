@@ -11,7 +11,7 @@ var setupLiveAddressGoogle = function (viewModel) {
   google.maps.event.addListener(autocomplete, 'place_changed', function () {
     var place = autocomplete.getPlace();
     parseAddress([place], function () {
-      viewModel.show('categries');
+      viewModel.show('categories');
       //Always scroll back to the top of the page
       window.scrollTo(window.scrollX, 0);
     });
@@ -26,7 +26,7 @@ var setupLiveAddressGoogle = function (viewModel) {
       var place = autocomplete2.getPlace();
       parseAddress( [ place ], function () {
         $('#signUp').modal('hide');
-        viewModel.show('categries');
+        viewModel.show('categories');
         //Always scroll back to the top of the page
         window.scrollTo(window.scrollX, 0);
       });
@@ -37,6 +37,8 @@ var setupLiveAddressGoogle = function (viewModel) {
     var geo = new google.maps.Geocoder();
     geo.geocode({ address: address }, function (results, status) {
       if (status == google.maps.GeocoderStatus.OK && results[0] != null) {
+        testResult = results;
+        console.log(results);
         parseAddress(results);
       } else {
         console.log('Something went wrong :(', results, status);
@@ -47,12 +49,16 @@ var setupLiveAddressGoogle = function (viewModel) {
     var parts = results[0].address_components;
     var address;
     try {
+      var streetNumber = findType(parts, 'street_number', 'long');
+      var streetName = findType(parts, 'route', 'short');
+      var postal = findType(parts, 'postal_code', 'long');
+      var postalSuffix = findType(parts, 'postal_code_suffix', 'long');
       address = {
-        primaryNumber: parts[0] ? parts[0].long_name : null,
-        street: parts[0] && parts[1] ? parts[0].long_name + ' ' + parts[1].short_name : null,
-        city: parts[2] ? parts[2].long_name : null,
-        stateShort: parts[4] ? parts[4].short_name : null,
-        zip: parts[6] ? parts[6].long_name + (parts[7] ? '-'+parts[7].short_name : '') : null,
+        primaryNumber: streetNumber,
+        street: streetNumber && streetName ? streetNumber + ' ' + streetName : null,
+        city: findType(parts, 'locality', 'long'),
+        stateShort: findType(parts, 'administrative_area_level_1', 'short'),
+        zip: postal ? postal + (postalSuffix ? '-' + postalSuffix : '') : null,
         lat: results[0].geometry.location.lat() || null,
         lon: results[0].geometry.location.lng() || null,
         rdi: ''
@@ -69,6 +75,22 @@ var setupLiveAddressGoogle = function (viewModel) {
     }
     onParseData(address, next);
   };
+  
+  var findType = function(components, componentType, format){
+    var match = _.find(components, function(c){
+      return _.contains(c.types, componentType)
+    });
+    if(match){
+      if(format === 'long'){
+        return match.long_name;  
+      } else {
+        return match.short_name;
+      }
+    }
+    
+    return null;
+  }
+  
   var onParseData = function (address, next) {
     var resetValues = function () {
       viewModel.address('');
@@ -94,11 +116,24 @@ var setupLiveAddressGoogle = function (viewModel) {
       }
       //Grab the site service day while we're at it
       wastemate.getServiceDayOfWeek().then(function (serviceDays) {
-        if (!serviceDays) {
+        
+        //Need to check if our categories all require a service day or not.
+        var hasOncall = false;
+        _.each(viewModel.categories(), function(c){
+          if(c.isRecurring && serviceDays){
+            c.isVisbile = true;
+          } else if(!c.isRecurring){
+            hasOncall = true;
+          }
+        });
+        
+        //When they all do and we don't know the service day then warn the user that nothing is offered at their location
+        if (!serviceDays && !hasOncall) {
           resetValues();
           alert('Oh drats, we don\'t have your address configured for online sign up. Call our office to speak to a human. 238-2381');
           return;
         }
+        
         //service days should be an array 
         if(serviceDays.length > 0){
           var service = serviceDays[0];

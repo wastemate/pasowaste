@@ -12,6 +12,11 @@ img {
 
 /* -------------------- */
 
+
+#wma-app .wma-service__type-container {
+  margin: 0 10px 23px;
+}
+
 #street_address, #lob_address {
   text-align: center;
 }
@@ -283,7 +288,7 @@ label > span > em {
 }
 
 .wma-choose__disclaimer {
-  width: 35% !important;
+  width: 29% !important;
 }
 
 @media ( max-width: 1320px ) {
@@ -326,6 +331,11 @@ h4 > em {
 #wma-app .wma-product__container {
   min-height: 360px !important;
   width: 29% !important;
+}
+
+#wma-app .wma-product__container-narrow {
+  margin-bottom: 0;
+  margin-left: 0;
 }
 
 .wma-products__title {
@@ -441,8 +451,9 @@ h4 > em {
   width: 90%;
 }
 
-.wma-product__container.custom_rolloff-product-container {
-  width: 260px !important;
+#wma-app .wma-product__container.custom_rolloff-product-container {
+  margin-bottom: 20px;
+  margin-left: 15px;
 }
 
 .wma-products__container.rolloff-product > .wma-product__container {
