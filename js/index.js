@@ -1,9 +1,7 @@
 var wma_viewModel;
 $(document).ready(function () {
-  //var appKey = 'RRfEslWKdFjN1u5Ui1FDo8SKuixewcvE8qSsR5It';
-  //var jsKey = 'EmixBK6qQ3MmUK8jPsSVzQKq5K9gLpqPMK8dk909';
-   var appKey = '6YJjl9Tlu9gml6IR0YfXrOIkY9SxqCfP2bshQELI';
-  var jsKey = 'DEIXEICevT5qkR1zQxvj8PVHrvWu4XPKN2QUhhmL';
+  var appKey = 'RRfEslWKdFjN1u5Ui1FDo8SKuixewcvE8qSsR5It';
+  var jsKey = 'EmixBK6qQ3MmUK8jPsSVzQKq5K9gLpqPMK8dk909';
   wma_viewModel = new viewModel();
   ko.applyBindings(wma_viewModel);
   wastemate.initialize(appKey, jsKey).then(function (categories) {
