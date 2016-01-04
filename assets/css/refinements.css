@@ -309,6 +309,11 @@ h4 > em {
   margin-top: 20px;
 }
 
+#wma-app .wma-products__container-inner {
+  width:75%;
+  margin-left:25%;
+}
+
 #wma-app .wma-products__title {
   font-size: 1.9em;
   margin: 20px 0 0 0;
@@ -318,13 +323,9 @@ h4 > em {
   width: 100% !important;
 }
 
-.wma-product__container {
+#wma-app .wma-product__container {
   min-height: 360px !important;
-  width: 260px;
-  background-color: #fff;
-  margin-left: 10px;
-  border-radius: 5px;
-  border: 1px solid #ddd;
+  width: 29% !important;
 }
 
 .wma-products__title {
@@ -342,10 +343,6 @@ h4 > em {
 }
 
 .wma-product__image-wrap.custom_image-wrap {
-  padding: 0px !important;
-}
-
-.wma-product__image-wrap.custom_image-wrap {
   padding-bottom: 0 !important;
 }
 
@@ -356,10 +353,11 @@ h4 > em {
   padding: 0 !important;
 }
 
-.wma-product__price {
-  font-size: 35px !important;
+#wma-app .wma-product__price {
+  font-size: 1.9em!important;
   font-family: 'proxima_nova_rgregular', Helvetica, Arial, sans-serif !important;
   font-weight: 100;
+  margin-top: 20px;
 }
 
 .wma-product__btn-diff-size {
@@ -369,6 +367,7 @@ h4 > em {
   font-weight: bold;
   text-decoration: underline;
   font-size: 15px;
+  margin-bottom: 20px;
 }
 
 .wma-product__btn-select {
