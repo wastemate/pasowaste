@@ -1085,7 +1085,7 @@ function viewModel() {
           city: self.billingCity(),
           state: self.billingStateShort(),
           zip: self.billingZip(),
-          phone: self.billingPhone()
+          phone: self.billingPhone() || self.servicePhone()
         });
         //persist billing options
         wastemate.setBillingOptions(self.wantsAutopay(), self.wantsPaperless());
