@@ -1,23 +1,21 @@
-var wma_viewModel;
 $(document).ready(function () {
-  //var appKey = 'RRfEslWKdFjN1u5Ui1FDo8SKuixewcvE8qSsR5It';
-  //var jsKey = 'EmixBK6qQ3MmUK8jPsSVzQKq5K9gLpqPMK8dk909';
-   var appKey = '6YJjl9Tlu9gml6IR0YfXrOIkY9SxqCfP2bshQELI';
-  var jsKey = 'DEIXEICevT5qkR1zQxvj8PVHrvWu4XPKN2QUhhmL';
-  wma_viewModel = new viewModel();
+  var wma_viewModel = new viewModel();
+  _wastemate['viewModel'] = wma_viewModel;
   ko.applyBindings(wma_viewModel);
-  wastemate.initialize(appKey, jsKey).then(function (categories) {
+  wastemate.initialize(_wastemate['APP_KEY'], _wastemate['JS_KEY']).then(function (categories) {
     //make the app visible
     wma_viewModel.shouldShowWMA(true);
     //make search visible!
     wma_viewModel.show('search');
     
-    //Allow CSRs to use this for cash and check accounts
-    wma_viewModel.skipValidateCC = true;
-    wastemate._private.ccOnly = false;
+    //check if setting was configured & apply default if necessary
+    if(_wastemate['REQUIRE_CC'] === undefined){
+      _wastemate['REQUIRE_CC'] = true;
+    }
     
-    //After the search is made visible, hookup live address library to the UI input.
-    // wireUpLiveAddress('#street_address', '4160067421270775959');
+    wastemate._private.ccRequired = _wastemate['REQUIRE_CC'];
+    wma_viewModel.skipValidateCC = !wastemate._private.ccRequired;
+    
     setupLiveAddressGoogle(wma_viewModel);
     //Add each of the categories to the UI
     $.each(categories, function (index, category) {

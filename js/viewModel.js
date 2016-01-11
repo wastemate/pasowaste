@@ -175,6 +175,18 @@ function viewModel() {
     return self.rolloffServices().length ? 'One-time service' : 'Weekly services';
   });
   //service info
+  self.fieldWarnings = ko.observable({
+    serviceFirstName: false,
+    serviceLastName: false,
+    serviceEmail: false,
+    servicePhone: false,
+    serviceAddress: false,
+    serviceAddressApt: false,
+    serviceCity: false,
+    serviceStateShort: false,
+    serviceZip: false
+  });
+  self.formWarning = ko.observableArray([]);
   self.serviceStartDate = ko.observable();
   self.serviceEndDate = ko.observable();
   self.serviceFirstName = ko.observable();
@@ -942,15 +954,16 @@ function viewModel() {
       try {
        deliveryDate = moment(self.serviceStartDate()).toDate().toISOString();
       } catch(e){
-        alert('Please select a delivery date.');
+        alert('Please choose a delivery date.');
         return;
       }
       var removalDate = null;
       try{
        removalDate = moment(self.serviceEndDate()).toDate().toISOString();
       } catch(e){
-        //alowying empty removal dates for now.
-        //alert('Please select a removal date.');
+        if(_wastemate['REQUIRE_REMOVAL_DATE']){
+          alert('Please choose a removal date.');
+        }
       }
       
       wastemate.setOnDemandDates(deliveryDate, removalDate).then(function () {
@@ -995,27 +1008,64 @@ function viewModel() {
         suite: self.serviceAddressApt() || '',
         zip: self.serviceZip() || ''
       };
+      
+      //clear errors
+      self.fieldWarnings().serviceFirstName = false;
+      self.fieldWarnings().serviceLastName = false;
+      self.fieldWarnings().serviceEmail = false;
+      self.fieldWarnings().serviceAddress = false;
+      self.fieldWarnings().serviceCity = false;
+      self.fieldWarnings().serviceStateShort = false;
+      self.fieldWarnings().serviceZip = false;
+      self.formWarning([]);
       if (siteInfo.firstName == '') {
-        alert('Oops. Missing your first name.');
-        return;
-      } else if (siteInfo.lastName == '') {
-        alert('Oops. Missing your last name.');
-        return;
-      } else if (siteInfo.email == '' && !self.skipValidateCC) {
-        alert('Oops. Missing your email.');
-        return;
-      } else if (siteInfo.street == '') {
-        alert('Oops. Missing your street address.');
-        return;
-      } else if (siteInfo.city == '') {
-        alert('Oops. Missing your city.');
-        return;
-      } else if (siteInfo.state == '') {
-        alert('Oops. Missing your address.');
-        return;
-      } else if (siteInfo.zip == '') {
-        alert('Oops. Missing your zip.');
-        return;
+        self.fieldWarnings().serviceFirstName = true;
+        self.formWarning.push({
+          strong: 'Oops! ',
+          message: 'Missing your first name.'
+        });
+      }
+      if (siteInfo.lastName == '') {
+        self.fieldWarnings().serviceLastName = true;
+        self.formWarning.push({
+          strong: '',
+          message: 'Missing your last name.'
+        });
+      }
+      if (siteInfo.email == '' && !self.skipValidateCC) {
+        self.fieldWarnings().serviceEmail = true;
+        self.formWarning.push({
+          strong: '',
+          message: 'Missing your email.'
+        });
+      }
+      if (siteInfo.street == '') {
+        self.fieldWarnings().serviceAddress = true;
+        self.formWarning.push({
+          strong: '',
+          message: 'Missing your street address.'
+        });
+      }
+      if (siteInfo.city == '') {
+        self.fieldWarnings().serviceCity = true;
+        self.formWarning.push({
+          strong: '',
+          message: 'Missing your city.'
+        });
+      }
+      if (siteInfo.state == '') {
+        self.fieldWarnings().serviceStateShort = true;
+        self.formWarning.push({
+          strong: '',
+          message: 'Missing your state.'
+        });
+      }
+      if (siteInfo.zip == '') {
+        self.fieldWarnings().serviceZip = true;
+        self.formWarning.push({
+          strong: '',
+          message: 'Missing your zip code.'
+        });
       }
       // TODO: server side email validation is better
       var validateEmail = function (email) {
@@ -1023,9 +1073,19 @@ function viewModel() {
         return re.test(email);
       };
       if (!validateEmail(siteInfo.email) && !self.skipValidateCC) {
-        alert('Oops. That email isn\'t valid');
+        self.fieldWarnings().serviceEmail = true;
+        self.formWarning.push({
+          strong: '',
+          message: 'That email address isn\'t valid.'
+        });
+      }
+      
+      if(self.formWarning().length){
+        self.fieldWarnings.notifySubscribers()
         return;
       }
+      
+      
       var lat = self.userLatLon().lat;
       var lon = self.userLatLon().lon;
       wastemate.updateAddressLocation(lat, lon).then(function () {
@@ -1034,11 +1094,17 @@ function viewModel() {
           self.show('payment');
         }, function (err) {
           console.log(err);
-          alert('Oops, something went wrong.');
+          self.formWarning.push({
+            strong: 'Service Error: ',
+            message: 'Something isn\'t right. Please try again.'
+          });
         });
       }, function (err) {
         console.log(err);
-        alert('Oops, something went wrong.');
+        self.formWarning.push({
+            strong: 'Service Error: ',
+            message: 'Something isn\'t right. Please try again.'
+          });
       });
       break;
     case 'payment':
@@ -1046,35 +1112,69 @@ function viewModel() {
         return;
       }
       
+      self.formWarning([]);
+       
       if (!self.validBillingCard() && !self.skipValidateCC) {
-        alert('Ooops. Please enter a valid card number.');
-        return;
-      } else if (!self.validBillingCardExpiration() && !self.skipValidateCC) {
-        alert('Ooops. Please enter a valid expiration date.');
-        return;
-      } else if (!self.validBillingCardSecurity() && !self.skipValidateCC) {
-        alert('Ooops. Please enter a valid security code');
-        return;
-      } else if (!self.billingFirstName() || self.billingFirstName() == '') {
-        alert('Oops. Missing first name.');
-        return;
-      } else if (!self.billingLastName() || self.billingLastName() == '') {
-        alert('Ooops. Missing last name.');
-        return;
-      } else if (!self.billingAddress() || self.billingAddress() == '') {
-        alert('Ooops. Missing billing address.');
-        return;
-      } else if (!self.billingStateShort || self.billingStateShort() == '') {
-        alert('Ooops, Missing billing state.');
-        return;
-      } else if (!self.billingCity || self.billingCity() == '') {
-        alert('Ooops, Missing billing city.');
-        return;
-      } else if (!self.billingZip() || self.billingZip() == '') {
-        alert('Ooops. Missing ZIP.');
+        self.formWarning.push({
+          strong: 'Payment: ',
+          message: 'Please enter a valid card number.'
+        });
+      }
+      if (!self.validBillingCardExpiration() && !self.skipValidateCC) {
+        self.formWarning.push({
+          strong: 'Payment: ',
+          message: 'Please enter a valid expiration date.'
+        });
+      }
+      if (!self.validBillingCardSecurity() && !self.skipValidateCC) {
+        self.formWarning.push({
+          strong: 'Payment: ',
+          message: 'Please enter a valid security code.'
+        });
+      }
+      if (!self.billingFirstName() || self.billingFirstName() == '') {
+        self.formWarning.push({
+          strong: 'Payment: ',
+          message: 'Missing first name.'
+        });
+      }
+      if (!self.billingLastName() || self.billingLastName() == '') {
+        self.formWarning.push({
+          strong: 'Payment: ',
+          message: 'Missing last name.'
+        });
+      }
+      if (!self.billingAddress() || self.billingAddress() == '') {
+        self.formWarning.push({
+          strong: 'Billing: ',
+          message: 'Missing billing address.'
+        });
+      }
+      if (!self.billingStateShort || self.billingStateShort() == '') {
+        self.formWarning.push({
+          strong: 'Billing: ',
+          message: 'Missing billing state.'
+        });
+      } 
+      if (!self.billingCity || self.billingCity() == '') {
+        self.formWarning.push({
+          strong: 'Billing: ',
+          message: 'Missing billing city.'
+        });
+      }
+      if (!self.billingZip() || self.billingZip() == '') {
+        self.formWarning.push({
+          strong: 'Billing: ',
+          message: 'Missing zip code.'
+        });
+      }
+      
+      if(self.formWarning().length){
         return;
       }
+      
       self.saveOrderInFlight = true;
+      self.formWarning([]);
       self.show('processing');
       
       var processOrder = function(){
@@ -1094,13 +1194,19 @@ function viewModel() {
             self.saveOrderInFlight = false;
             console.log(account);
             self.accountNumber(account.C_ID);
+            //Update the parse account object with the encore account #
+            wastemate._private.account.set('accountNumber', account.C_ID);
+            wastemate._private.account.save();
             self.show('confirmation');
           }, function (err) {
             self.saveOrderInFlight = false;
             self.show('payment');
             console.log(err);
             if (err) {
-              alert('Oops. There was a problem processing your order.');
+              self.formWarning.push({
+                strong: 'Service Error: ',
+                message: 'There was a problem processing your order. Please try again.'
+              });
             }
           });
       };
@@ -1140,7 +1246,10 @@ function viewModel() {
             self.show('payment');
             console.log(err);
             if (err) {
-                alert('Upfront payment failed.');
+              self.formWarning.push({
+                strong: 'Payment Error: ',
+                message: 'Unable to process payment. Check credit card information and try again.'
+              });
               }
           });       
         }, function (err) {
@@ -1148,7 +1257,10 @@ function viewModel() {
           self.show('payment');
           console.log(err);
           if (err) {
-            alert('Credit Card information did not validate');
+            self.formWarning.push({
+              strong: 'Payment Error: ',
+              message: 'Credit card validation error. Check credit card information and try again.'
+            });
           }
         });
       }
@@ -1257,11 +1369,12 @@ function viewModel() {
     case 'categories':
       hideAll();
       //bring wastemate front and center when embedded in a 3rd party site
-      var siteContent = $('#body');
+      var siteContent = $('#' + _wastemate['ui']['hide'] || 'body');
       if(siteContent){
         self.shouldShowWMA(true);
         siteContent.hide();
       }
+      
       //Special case, one category just select it already!
       if(self.categories().length === 1){
         self.loadCategory(self.categories()[0]);
@@ -1383,7 +1496,7 @@ function bindViewFormatters(){
 // validate cc num
 $('#wma-cst-crdnbr').payment('formatCardNumber');
 $('#wma-cst-crdnbr').on('keyup', function () {
-  wma_viewModel.validBillingCard(false);
+  _wastemate['viewModel'].validBillingCard(false);
   var num = $(this).val().replace(/\s/g, '');
   var isValid = $.payment.validateCardNumber(num);
   if (num.length == 16 && !isValid) {
@@ -1391,7 +1504,7 @@ $('#wma-cst-crdnbr').on('keyup', function () {
     $(this).css('border', '2px solid #FFCCCC');
   } else if (num.length == 16 && isValid) {
     // done and valid
-    wma_viewModel.validBillingCard(true);
+    _wastemate['viewModel'].validBillingCard(true);
     $(this).css('border', '2px solid #007700');
     $('#wma-cst-expmm').focus();
   } else {
@@ -1409,7 +1522,7 @@ $('#wma-cst-crdnbr').on('keyup', function () {
 // validate cvc num
 $('#wma-cst-cvv').payment('formatCardCVC');
 $('#wma-cst-cvv').on('keyup', function () {
-  wma_viewModel.validBillingCardSecurity(false);
+  _wastemate['viewModel'].validBillingCardSecurity(false);
   var num = $(this).val();
   var isValid = $.payment.validateCardCVC(num);
   if (num.length >= 3 && !isValid) {
@@ -1417,7 +1530,7 @@ $('#wma-cst-cvv').on('keyup', function () {
     $(this).css('border', '2px solid #FFCCCC');
   } else if (num.length >= 3 && isValid) {
     // done and valid
-    wma_viewModel.validBillingCardSecurity(true);
+    _wastemate['viewModel'].validBillingCardSecurity(true);
     $(this).css('border', '2px solid #007700');
   } else {
     $(this).css('background-color', '');
@@ -1425,9 +1538,9 @@ $('#wma-cst-cvv').on('keyup', function () {
 });
 (function () {
   var onExpirationDateChange = function (isValid) {
-    wma_viewModel.validBillingCardExpiration(false);
+    _wastemate['viewModel'].validBillingCardExpiration(false);
     if (isValid) {
-      wma_viewModel.validBillingCardExpiration(true);
+      _wastemate['viewModel'].validBillingCardExpiration(true);
       $('#wma-cst-expmm').css('border', '2px solid #007700');
       $('#wma-cst-expyy').css('border', '2px solid #007700');
     } else {
@@ -1457,7 +1570,7 @@ $('#wma-cst-cvv').on('keyup', function () {
 $('#wma-cst-phn').inputmask('mask', { 'mask': '(999) 999-9999' });
 $('#wma-cst-billingphn').inputmask('mask', { 'mask': '(999) 999-9999' });
 $('#wma-cst-billsameaddr').on('change', function () {
-  wma_viewModel.toggleBillingSame();
+  _wastemate['viewModel'].toggleBillingSame();
   try {
     window.invalidateAllInputs();
   } catch(ex){
@@ -1465,7 +1578,7 @@ $('#wma-cst-billsameaddr').on('change', function () {
   }
 });
 $('.wma-billing-input').on('keyup', function () {
-  wma_viewModel._billingIsSame(false);
+  _wastemate['viewModel']._billingIsSame(false);
   $('#wma-cst-billsameaddr').removeAttr('checked');
 });
 $(function () {

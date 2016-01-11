@@ -6,7 +6,8 @@ var setupLiveAddressGoogle = function (viewModel) {
     componentRestrictions: { country: 'us' }
   };
   // first (header) input
-  var input = document.getElementById('street_address');
+  var inputElementId = _wastemate['ui']['main'] || 'wastemate-ordering';
+  var input = document.getElementById(inputElementId);
   var autocomplete = new google.maps.places.Autocomplete(input, options);
   google.maps.event.addListener(autocomplete, 'place_changed', function () {
     var place = autocomplete.getPlace();
@@ -18,6 +19,7 @@ var setupLiveAddressGoogle = function (viewModel) {
   });
   
   // second (lightbox) input
+  var lightBoxElementId = _wastemate['ui']['search'] || 'wastemate-address';
   var input2 = document.getElementById('floating_address' );
   if(input2){
     var autocomplete2 = new google.maps.places.Autocomplete( input2, options );

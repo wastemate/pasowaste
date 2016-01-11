@@ -44,12 +44,12 @@ var setupMiniMap = function( lat, lon ) {
     newLat = markerNew.getLatLng().lat;
     newLng = markerNew.getLatLng().lng;
 
-    wma_viewModel.userLatLon({
+    _wastemate['viewModel'].userLatLon({
       lat: newLat,
       lon: newLng
     });
 
-    console.log( wma_viewModel.userLatLon() );
+    console.log( _wastemate['viewModel'].userLatLon() );
 
   } );
 
