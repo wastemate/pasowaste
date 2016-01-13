@@ -127,6 +127,7 @@ function viewModel() {
   self.shouldShowConfirmation = ko.observable(false);
   self.shouldShowProcessNav = ko.observable(false);
   self.shouldShowProcessNavFooter = ko.observable(false);
+  self.shouldShowQuoteInfo = ko.observable(false);
   self.noServiceSelection = ko.observable(false);
   self.rolloffTermsSubjectToChange = ko.observable(false);
   self.rolloffTermsUnderstandCharge = ko.observable(false);
@@ -193,6 +194,7 @@ function viewModel() {
   self.serviceLastName = ko.observable();
   self.serviceEmail = ko.observable();
   self.servicePhone = ko.observable();
+  self.serviceComments = ko.observable();
   self.rolloffDatesChoosen = ko.computed(function () {
     return self.serviceStartDate() && self.rolloffTermsSubjectToChange() && self.rolloffTermsUnderstandCharge() && self.rolloffTermsUnderstandRent();
   });
@@ -469,8 +471,9 @@ function viewModel() {
     self.show('processing');
     wastemate.getServices(data.line).then(function (services) {
       if (services.length == 0) {
+        self.generateQuoteFor = data.line; //tell wastemate what the user is interested in
         self.noServiceSelection(true);
-        self.show('siteInfo');
+        self.show('quote');
         setupMiniMap(self.userLatLon().lat, self.userLatLon().lon);
         return;
       }
@@ -1107,6 +1110,119 @@ function viewModel() {
           });
       });
       break;
+    case 'quote':
+       var siteInfo = {
+        firstName: self.serviceFirstName() || '',
+        lastName: self.serviceLastName() || '',
+        email: self.serviceEmail() || '',
+        phone: self.servicePhone() || '',
+        address: self.serviceAddressFull() || '',
+        street: self.serviceAddress() || '',
+        city: self.serviceCity() || '',
+        state: self.serviceStateShort() || '',
+        suite: self.serviceAddressApt() || '',
+        zip: self.serviceZip() || '',
+        comments: self.serviceComments() || ''
+      };
+      
+      //clear errors
+      self.fieldWarnings().serviceFirstName = false;
+      self.fieldWarnings().serviceLastName = false;
+      self.fieldWarnings().serviceEmail = false;
+      self.fieldWarnings().serviceAddress = false;
+      self.fieldWarnings().serviceCity = false;
+      self.fieldWarnings().serviceStateShort = false;
+      self.fieldWarnings().serviceZip = false;
+      self.formWarning([]);
+      if (siteInfo.firstName == '') {
+        self.fieldWarnings().serviceFirstName = true;
+        self.formWarning.push({
+          strong: 'Oops! ',
+          message: 'Missing your first name.'
+        });
+      }
+      if (siteInfo.lastName == '') {
+        self.fieldWarnings().serviceLastName = true;
+        self.formWarning.push({
+          strong: '',
+          message: 'Missing your last name.'
+        });
+      }
+      if (siteInfo.email == '' && !self.skipValidateCC) {
+        self.fieldWarnings().serviceEmail = true;
+        self.formWarning.push({
+          strong: '',
+          message: 'Missing your email.'
+        });
+      }
+      if (siteInfo.street == '') {
+        self.fieldWarnings().serviceAddress = true;
+        self.formWarning.push({
+          strong: '',
+          message: 'Missing your street address.'
+        });
+      }
+      if (siteInfo.city == '') {
+        self.fieldWarnings().serviceCity = true;
+        self.formWarning.push({
+          strong: '',
+          message: 'Missing your city.'
+        });
+      }
+      if (siteInfo.state == '') {
+        self.fieldWarnings().serviceStateShort = true;
+        self.formWarning.push({
+          strong: '',
+          message: 'Missing your state.'
+        });
+      }
+      if (siteInfo.zip == '') {
+        self.fieldWarnings().serviceZip = true;
+        self.formWarning.push({
+          strong: '',
+          message: 'Missing your zip code.'
+        });
+      }
+      // TODO: server side email validation is better
+      var validateEmail = function (email) {
+        var re = /^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i;
+        return re.test(email);
+      };
+      if (!validateEmail(siteInfo.email) && !self.skipValidateCC) {
+        self.fieldWarnings().serviceEmail = true;
+        self.formWarning.push({
+          strong: '',
+          message: 'That email address isn\'t valid.'
+        });
+      }
+      
+      if(self.formWarning().length){
+        self.fieldWarnings.notifySubscribers()
+        return;
+      }
+      
+      
+      var lat = self.userLatLon().lat;
+      var lon = self.userLatLon().lon;
+      
+      wastemate.saveServiceInformation(siteInfo).then(function () {
+        wastemate.processQuoteRequest(self.generateQuoteFor).then(function(){
+          self.accountNumber(new Date().getTime());
+          self.show('confirmation');
+        }, function(err){
+          self.formWarning.push({
+            strong: 'Service Error: ',
+            message: 'Something isn\'t right. Please try again.'
+          });
+        });
+      }, function (err) {
+        console.log(err);
+        self.formWarning.push({
+          strong: 'Service Error: ',
+          message: 'Something isn\'t right. Please try again.'
+        });
+      });
+      break;
     case 'payment':
       if (self.saveOrderInFlight) {
         return;
@@ -1356,6 +1472,7 @@ function viewModel() {
       self.shouldShowProcessNavFooter(false);
       self.shouldChooseStart(false);
       self.shouldShowProcessing(false);
+      self.shouldShowQuoteInfo(false);
     };
     
     switch (view) {
@@ -1427,6 +1544,11 @@ function viewModel() {
     case 'siteInfo':
       hideAll();
       self.shouldShowBillingInfo(true);
+      self.shouldShowProcessNav(true);
+      break;
+    case 'quote':
+      hideAll();
+      self.shouldShowQuoteInfo(true);
       self.shouldShowProcessNav(true);
       break;
     case 'payment':

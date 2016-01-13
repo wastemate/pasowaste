@@ -4,7 +4,9 @@ $(document).ready(function () {
   ko.applyBindings(wma_viewModel);
   wastemate.initialize(_wastemate['APP_KEY'], _wastemate['JS_KEY']).then(function (categories) {
     //make the app visible
-    wma_viewModel.shouldShowWMA(true);
+    if(_wastemate['ui']['widget'] == false){
+      wma_viewModel.shouldShowWMA(true);  
+    }
     //make search visible!
     wma_viewModel.show('search');
     

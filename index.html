@@ -38,6 +38,7 @@
           <div class="wma-products__container" data-bind="visible: shouldChooseStart, template: {name: 'wma-products-resi-container'}"></div>
           <div class="wma-products__container" data-bind="visible: shouldShowDeliveryAndReview, template: {name: 'wma-products-oncall-container'}"></div>
           <div class="wma-base__container wma-base__panel-light" data-bind="visible: shouldShowBillingInfo, template: {name: 'wma-base-service-info'}"></div>
+          <div class="wma-base__container wma-base__panel-light" data-bind="visible: shouldShowQuoteInfo, template: {name: 'wma-base-quote-info'}"></div>
           <form autocomplete='on' class="wma-base__container wma-base__padded wma-base__panel-light" data-bind="visible: shouldShowPaymentInfo, template: {name:'wma-base-payment-info'}"></form>
           <div class="wma-products__container wma-confirmation__content" data-bind="visible: shouldShowConfirmation, template: {name: 'wma-products-confirmation'}"></div>
           <div class="wma-products__container" data-bind="visible: shouldShowProcessing, template: {name: 'wma-order-processing'}"></div>
@@ -154,12 +155,7 @@
                   <!--  ko if: ( noServiceSelection() ) -->
                     <li data-bind="css: {'wma-nav__completed': addressConfirmed(), '': !addressConfirmed(), 'wma-nav__active': ( showing() == 'siteInfo' ) }, click: startChoosen() ? show('siteInfo'): null">
                       <div class="wma-process__nav-count">1</div>
-                      <p class="wma-process__nav-desc">Confirm address</p>
-                    </li>
-
-                    <li data-bind="css: {'wma-nav__completed': paymentProcessed(), '': !paymentProcessed(), 'wma-nav__active': ( showing() == 'payment' ) }, click: addressConfirmed() ? show('payment'): null">
-                      <div class="wma-process__nav-count">2</div>
-                      <p class="wma-process__nav-desc">Payment information</p>
+                      <p class="wma-process__nav-desc">Location Information</p>
                     </li>
                   <!-- /ko -->
 
@@ -443,7 +439,7 @@
           
           <script type="text/html" id="wma-base-service-info">
             <div class="wma-base__container-wrap">
-                <div class="wma-row">
+                <div class="wma-row">                    
                   <div data-bind="foreach: formWarning">
                     <div class="alert alert-warning" role="alert" style="margin-top: 10px;margin-bottom: -13px;">
                         <strong data-bind="text: strong"></strong><span data-bind="text: message"></span>
@@ -515,6 +511,80 @@
 
                 <div class="wma-row wma-base__last-row wma-base__horz-center">
                     <button class="wma-base__next-btn wma-info__checkout-btn" data-bind="click: $root.next">Checkout</button>
+                </div>
+              </div>
+          </script>
+        
+        <script type="text/html" id="wma-base-quote-info">
+            <div class="wma-base__container-wrap">
+                <div class="wma-row">
+                  <div class="alert alert-info" role="alert" style="margin-top: 10px;margin-bottom: -13px;">
+                     We're unable to provide online ordering for this service at your location. Please provide your information below and someone will get in touch with you soon.
+                  </div>
+                  <div data-bind="foreach: formWarning">
+                    <div class="alert alert-warning" role="alert" style="margin-top: 10px;margin-bottom: -13px;">
+                        <strong data-bind="text: strong"></strong><span data-bind="text: message"></span>
+                    </div>
+                  </div>
+                  <div class="wma-info__column">
+                    <h3 class="wma-base__title">Your information</h3>
+
+                    <div class="wma-base__form-group col-md-6" style="width:49%;float:left;margin-top:10px;" data-bind="css: { 'has-error' : fieldWarnings().serviceFirstName }">
+                      <input placeholder='First name *' type="text" class="wma-base__form-control" id="wma-cst-fn" data-bind="value: serviceFirstName">
+                    </div>
+
+                    <div class="wma-base__form-group col-md-6" style="width:49%;float:right;margin-top:10px;" data-bind="css: { 'has-error' : fieldWarnings().serviceLastName }">
+                      <input placeholder='Last name *' type="text" class="wma-base__form-control" id="wma-cst-ln" data-bind="value: serviceLastName">
+                    </div>
+
+                    <div class='clearfix'></div>
+
+                    <div class="wma-base__form-group" data-bind="css: { 'has-error' : fieldWarnings().serviceEmail }">
+                      <input placeholder='Email *' type="text" class="wma-base__form-control" id="wma-cst-em" data-bind="value: serviceEmail">
+                    </div>
+
+                    <div class="wma-base__form-group" data-bind="css: { 'has-error' : fieldWarnings().servicePhone }">
+                      <input placeholder='Phone number *' type="text" class="wma-base__form-control" id="wma-cst-phn" data-bind="value: servicePhone" placeholder='(   )    -    '>
+                    </div>
+                    
+                    <div class="wma-base__form-group">
+                      <textarea placeholder='Anything we should know?' type="text" class="wma-base__form-control" id="wma-cst-cmts" rows="10" cols="50" data-bind="value: serviceComments" placeholder=''></textarea>
+                    </div>
+                    
+                  </div>
+
+                  <div class="wma-info__column">
+                    <h3 class="wma-base__title">Service address</h3>
+
+                    <div class="wma-base__form-group col-md-6" style="width:49%;float:left;margin-top:10px;" data-bind="css: { 'has-error' : fieldWarnings().serviceAddress }">
+                      <input placeholder='Address *' type="text" class="wma-base__form-control" id="wma-cst-aptste" data-bind="value: serviceAddress">
+                    </div>
+
+                    <div class="wma-base__form-group col-md-6" style="width:49%;float:right;margin-top:10px;" data-bind="css: { 'has-error' : fieldWarnings().serviceAddressApt }">
+                      <input placeholder='Apt, suite, etc. (optional)' type="text" class="wma-base__form-control" id="wma-cst-aptste" data-bind="value: serviceAddressApt">
+                    </div>
+
+                    <div class="clearfix"></div>
+
+                    <div class="wma-base__form-group" data-bind="css: { 'has-error' : fieldWarnings().serviceCity }">
+                      <input placeholder='City *' type="text" class="wma-base__form-control" id="wma-cst-city" data-bind="value: serviceCity">
+                    </div>
+
+                    <div class="clearfix"></div>
+
+                    <div class="wma-base__form-group col-md-6" style="width:49%;float:left;" data-bind="css: { 'has-error' : fieldWarnings().serviceStateShort }">
+                      <input placeholder='State *' type="text" class="wma-base__form-control" id="wma-cst-aptste" data-bind="value: serviceStateShort">
+                    </div>
+
+                    <div class="wma-base__form-group col-md-6" style="width:49%;float:right;" data-bind="css: { 'has-error' : fieldWarnings().serviceZip }">
+                      <input placeholder='ZIP *' type="text" class="wma-base__form-control" id="wma-cst-zip" data-bind="value: serviceZip">
+                    </div>
+
+                  </div>
+                </div>
+
+                <div class="wma-row wma-base__last-row wma-base__horz-center">
+                    <button class="wma-base__next-btn wma-info__checkout-btn" data-bind="click: $root.next">Send Request</button>
                 </div>
               </div>
           </script>
@@ -732,7 +802,7 @@
             _wastemate['JS_KEY']  = 'DEIXEICevT5qkR1zQxvj8PVHrvWu4XPKN2QUhhmL';
             _wastemate['REQUIRE_CC'] = false;           //Default: true
             _wastemate['REQUIRE_REMOVAL_DATE'] = false; //Default: true
-            _wastemate['ui']['widget'] = true;          //Default: true
+            _wastemate['ui']['widget'] = false;          //Default: true
             _wastemate['ui']['search'] = 'floating_address';         //Default: 'wastemate-address'
             _wastemate['ui']['main'] = 'street_address';           //Default: 'wastemate-ordering'
             _wastemate['ui']['hide'] = 'body'; //Default: 'body'
