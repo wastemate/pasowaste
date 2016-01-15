@@ -24,7 +24,12 @@
         <![endif]-->
 
         <div id="wma-app" class="wma-container" data-bind="visible: shouldShowWMA, template: {name: 'wma-container-main'}"></div>
-        
+        </br>
+        <!--
+        <button class="wastemate-service-order"
+            data-service-line="91abbb7f-d028-4f92-88ce-6953390c7287"
+            data-service-guid="f94696e8-58c7-4032-96b6-4b57c7bf0302">Order Now</button>
+        </br>-->
         <script type="text/html" id="wma-container-main">
           <div data-bind="visible: shouldShowSearch, template: {name: 'wma-initial-template'}"></div>
           <div class="wma-process__nav" data-bind="visible: shouldShowProcessNav, template: {name: 'wma-process-nav-template'}"></div>
@@ -803,6 +808,7 @@
             _wastemate['REQUIRE_CC'] = false;           //Default: true
             _wastemate['REQUIRE_REMOVAL_DATE'] = false; //Default: true
             _wastemate['ui']['widget'] = false;          //Default: true
+            _wastemate['ui']['button'] = 'wastemate-service-order'; //Default
             _wastemate['ui']['search'] = 'floating_address';         //Default: 'wastemate-address'
             _wastemate['ui']['main'] = 'street_address';           //Default: 'wastemate-ordering'
             _wastemate['ui']['hide'] = 'body'; //Default: 'body'

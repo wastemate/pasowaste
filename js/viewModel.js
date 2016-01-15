@@ -107,6 +107,7 @@ function viewModel() {
   var self = this;
   self.history = [];
   self.lastHash = '';
+  self.pendingOrder = {};
   self.showing = ko.observable('search');
   self.shouldShowWMA = ko.observable(false);
   /* visibility controls */
@@ -551,8 +552,21 @@ function viewModel() {
         console.log(allMaterials);
         self.show('materials');
       } else {
-        // start with landfill selection
-        self.show('residentialLandfill');
+        //Check pending order for a landfill service to auto select
+        var found = false;
+        if(self.pendingOrder.service != undefined){
+          var service = self.pendingOrder.service;
+          _.each(self.landfillServices(), function(s){
+            if(s.guid == service){
+              self.selectProductService(s, 'automagic selection');
+              //our job is done, reset the pending order.
+              self.pendingOrder = {};
+            }
+          });
+        } 
+        if(!found){
+          self.show('residentialLandfill');
+        }
       }
     }, function (err) {
       if (err) {
@@ -620,6 +634,15 @@ function viewModel() {
       self.show('rolloff');
     }
   };
+  
+  self.buttonOrderService = function(serviceGuid, lineGuid){
+    //Store the guid.
+    self.pendingOrder = {
+      line: lineGuid,
+      service: serviceGuid
+    };
+  };
+  
   self.selectProductService = function (data, event) {
     if (typeof data.enabled != 'undefined' && !data.enabled) {
       return;
