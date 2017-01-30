@@ -25,11 +25,7 @@
 
         <div id="wma-app" class="wma-container" data-bind="visible: shouldShowWMA, template: {name: 'wma-container-main'}"></div>
         </br>
-        <!--
-        <button class="wastemate-service-order"
-            data-service-line="91abbb7f-d028-4f92-88ce-6953390c7287"
-            data-service-guid="f94696e8-58c7-4032-96b6-4b57c7bf0302">Order Now</button>
-        </br>-->
+        
         <script type="text/html" id="wma-container-main">
           <div data-bind="visible: shouldShowSearch, template: {name: 'wma-initial-template'}"></div>
           <div class="wma-process__nav" data-bind="visible: shouldShowProcessNav, template: {name: 'wma-process-nav-template'}"></div>
@@ -796,13 +792,13 @@
         <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"> </script>
         <script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.14.30/js/bootstrap-datetimepicker.min.js"> </script>
         <script src="//www.promisejs.org/polyfills/promise-6.1.0.min.js"> </script>
-        <script src="//www.parsecdn.com/js/parse-1.4.2.min.js"> </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/parse/1.9.2/parse.js"> </script>
         <script src="//cdnjs.cloudflare.com/ajax/libs/knockout/3.3.0/knockout-min.js"> </script>
         <script src="//maps.googleapis.com/maps/api/js?libraries=places&key=AIzaSyDkNkOrlhv8qDAznL8boO3lMXBQUAopnt0"> </script>
         <script src="//cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"> </script>
         <!-- Configure WasteMate -->
         <script type="text/javascript">
-            var _wastemate = _wastemate || {'ui': {}, 'user': {}};
+            var _wastemate = _wastemate || {'ui': {}, 'user': {}, 'site': {baseUrl:''}};
             _wastemate['APP_KEY']= '6YJjl9Tlu9gml6IR0YfXrOIkY9SxqCfP2bshQELI';
             _wastemate['JS_KEY']  = 'DEIXEICevT5qkR1zQxvj8PVHrvWu4XPKN2QUhhmL';
             _wastemate['REQUIRE_CC'] = false;           //Default: true
@@ -812,6 +808,10 @@
             _wastemate['ui']['search'] = 'floating_address';         //Default: 'wastemate-address'
             _wastemate['ui']['main'] = 'street_address';           //Default: 'wastemate-ordering'
             _wastemate['ui']['hide'] = 'body'; //Default: 'body'
+            _wastemate['ui']['error_phone'] = '(619) 702-3300';
+            _wastemate['search_bounds'] = {latTop: 33.404443, lonLeft:-117.624034, latBottom: 32.585488, lonRight: -116.236613};
+            _wastemate['site']['baseUrl'] = '';
+            Parse.serverURL = "https://wastemate-parse.herokuapp.com/parse";
         </script>
         <!-- Load WasteMate -->
         <script src="wastemate.min.js"></script>

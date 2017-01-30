@@ -1,10 +1,19 @@
 var _debug = window._debug || false;
 var setupLiveAddressGoogle = function (viewModel) {
   // Google Places Autocomplete
+ 
   var options = {
     types: ['address'],
     componentRestrictions: { country: 'us' }
   };
+  
+  if(_wastemate['search_bounds'] != undefined){
+    var bounds = _wastemate['search_bounds'];
+    var searchBounds = new google.maps.LatLngBounds(
+    new google.maps.LatLng(bounds.latTop, bounds.lonLeft),
+    new google.maps.LatLng(bounds.latBottom, bounds.lonRight));
+    options.bounds = searchBounds;
+  }
   
   //Show WasteMate
   var wasteMateNext = function(){
@@ -18,16 +27,16 @@ var setupLiveAddressGoogle = function (viewModel) {
             loading = true;
           }
         });
-       if(!loading){
-         console.log("Service selected was not avaialbe for auto selection");
-       } else {
-         viewModel.pendingOrder.line = undefined;
-         var siteContent = $('#' + _wastemate['ui']['hide'] || 'body');
-         if(siteContent){
-           viewModel.shouldShowWMA(true);
-           siteContent.hide();
-         }
-       }
+        if(!loading){
+            console.log("Service selected was not avaialbe for auto selection");
+            viewModel.show('categories');
+        }
+        viewModel.pendingOrder.line = undefined;
+        var siteContent = $('#' + _wastemate['ui']['hide'] || 'body');
+        if(siteContent){
+            viewModel.shouldShowWMA(true);
+            siteContent.hide();
+        }
     } else {
       $('#signUp').modal('hide');
       viewModel.show('categories');
@@ -153,7 +162,7 @@ var setupLiveAddressGoogle = function (viewModel) {
         //When they all do and we don't know the service day then warn the user that nothing is offered at their location
         if (!serviceDays && !hasOncall) {
           resetValues();
-          alert('Oh drats, we don\'t have your address configured for online sign up. Call our office to speak to a human. 238-2381');
+          alert('Oh drats, we don\'t have your address configured for online sign up. Call our office to speak to a human. ' + _wastemate['ui']['error_phone']);
           return;
         }
         
@@ -180,7 +189,7 @@ var setupLiveAddressGoogle = function (viewModel) {
         }
         $('#lob_address').css('border', '2px solid #FFCCCC');
         resetValues();
-        alert('Oh drats, we don\'t have your address configured for online sign up. Call our office to speak to a human. 238-2381');
+        alert('Oh drats, we don\'t have your address configured for online sign up. Call our office to speak to a human. ' + _wastemate['ui']['error_phone']);
       });
     });
   };

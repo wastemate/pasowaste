@@ -15,6 +15,10 @@ $(document).ready(function () {
       _wastemate['REQUIRE_CC'] = true;
     }
     
+    if(_wastemate.site.baseUrl === undefined){
+        _wastemate.site.baseUrl = '';
+    }
+    
     wastemate._private.ccRequired = _wastemate['REQUIRE_CC'];
     wma_viewModel.skipValidateCC = !wastemate._private.ccRequired;
     
@@ -61,6 +65,8 @@ $(document).ready(function () {
   
   if(queryService && queryLine){
     wma_viewModel.buttonOrderService(queryService, queryLine);
+  } else if(queryLine){
+    wma_viewModel.buttonOrderService(null, queryLine);
   }
 });
 

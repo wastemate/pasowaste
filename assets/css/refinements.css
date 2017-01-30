@@ -300,7 +300,7 @@ label > span > em {
 }
 
 .rolloff-template .wma-product__image-wrap {
-  height: 140px;
+  min-height: 214px;
 }
 
 h4 > em {

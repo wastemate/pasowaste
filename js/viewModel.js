@@ -561,6 +561,7 @@ function viewModel() {
               self.selectProductService(s, 'automagic selection');
               //our job is done, reset the pending order.
               self.pendingOrder = {};
+              found = true;
             }
           });
         } 
@@ -606,7 +607,7 @@ function viewModel() {
     if (self.selectedMaterial().services.length == 1) {
       var s = self.selectedMaterial().services[0];
       self.selectProductService(s);
-      console.log(s);
+      //console.log(s);
     }
     //Move to the next step
     self.next();
@@ -634,13 +635,18 @@ function viewModel() {
       self.show('rolloff');
     }
   };
-  
+  //Allow pending orders to be passed into the viewModel
   self.buttonOrderService = function(serviceGuid, lineGuid){
-    //Store the guid.
-    self.pendingOrder = {
-      line: lineGuid,
-      service: serviceGuid
-    };
+    if(!serviceGuid && lineGuid){
+        self.pendingOrder = {
+            line: lineGuid
+        }
+    } else if(serviceGuid && lineGuid){
+        self.pendingOrder = {
+            line: lineGuid,
+            service: serviceGuid
+        };
+    }
   };
   
   self.selectProductService = function (data, event) {
@@ -661,18 +667,18 @@ function viewModel() {
       self.rolloffServices
     ];
     _.each(serviceObjects, function (serviceObject) {
-      var services = serviceObject();
-      //see if the selected service is in this category
-      var hasMatch = _.find(services, function (item) {
-        return item.guid === data.guid;
-      });
-      if (hasMatch) {
-        //if so, reset the selected value on all of the services
-        _.each(services, function (item) {
-          item.selected = item.guid === data.guid;
+        var services = serviceObject();
+        //see if the selected service is in this category - Only want to update selected of same category!
+        var hasMatch = _.find(services, function (item) {
+            return item.guid === data.guid;
         });
-        serviceObject(services);
-      }
+        if (hasMatch) {
+            //if so, reset the selected value on all of the services in this seviceObject (category)
+            _.each(services, function (item) {
+                item.selected = item.guid === data.guid;
+            });
+            serviceObject(services);
+        }
     });
     self.selectedService(data);
     self.selectProductShow(data);
@@ -753,6 +759,7 @@ function viewModel() {
         //save order should really return a promise... but this is a demo!
         self.saveOrder(event, function (err) {
           var availableDates = [];
+          //when availableDeliveryDates() is empyt/undefined -> check RegionRoute & Route are configured in the DB
           _.each(self.avaiableDeliveryDates(), function (item) {
             availableDates.push(moment(item.date).toDate());
           });
@@ -1429,7 +1436,7 @@ function viewModel() {
       if (selected) {
         serviceChoices.push(_.clone(selected));
       } else if (!_.isEmpty(serviceObject())) {
-        var item = serviceObject[0].type.name;
+        var item = serviceObject()[0].type.name;
         err.push('a ' + item.toLower() + ' service');
       }
     });
@@ -1618,7 +1625,7 @@ ko.extenders.required = function (target, errorMessage) {
 ko.bindingHandlers.backgroundImage = {
   update: function (element, valueAccessor) {
     ko.bindingHandlers.style.update(element, function () {
-      return { backgroundImage: 'url(\'' + valueAccessor() + '\')' };
+      return { backgroundImage: 'url(\''+ _wastemate.site.baseUrl + valueAccessor() + '\')' };
     });
   }
 };
